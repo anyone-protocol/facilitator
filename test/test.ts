@@ -22,4 +22,18 @@ describe("Facility contract", function () {
     expect(await facility.tokenContract()).to.equal(TokenContractAddress)
   })
 
+  it('Emits an event requesting allocation update for a given address')
+
+  it('Allows updating token allocation for a given address')
+
+  it('Ignores unauthorized token allocation updates')
+
+  it('Allows claiming available tokens allocated to a given address')
+
+  it('Prevents claiming tokens when not enough are available')
+
+  it('Prevents claiming tokens when none are allocated')
+
+  it('Prevents claiming tokens when already at limit')  
+
 });
