@@ -20,10 +20,10 @@ $ npm i
 
 ## Test
 ```bash
-$ npm test
+$ npx hardhat test --network localhost
 ```
 
 ## Deploy (dev)
 ```bash
-$ npx hardhat run --network <network-name> scripts/deploy.ts
+$ npx hardhat run --network localhost scripts/deploy.ts
 ```

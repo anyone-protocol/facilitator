@@ -9,7 +9,7 @@ dotenv.config();
 
 const GOERLI_RPC_URL = process.env.GOERLI_RPC_URL
 const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY 
-  || "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd" # HardHat dev key no. 13
+  || "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd" // HardHat dev key no. 13
 
 const config: HardhatUserConfig = {
   solidity: {
