@@ -21,16 +21,6 @@ describe("Facility contract", function () {
     const { facility } = await loadFixture(deploy)
     expect(await facility.tokenContract()).to.equal(TokenContractAddress)
   })
-  
-  it('Updates token allocation for a given address', async () => {
-    const { facility, admin, tester } = await loadFixture(deploy)    
-    const newValue = 1_500_000
-
-    await expect(
-      facility.connect(admin).updateAllocation(tester.address, newValue)
-    ).to.emit(facility, "AllocationUpdated")
-      .withArgs(tester.address, newValue)
-  })
 
   it('Emits an event requesting allocation update for a given address', async () => {
     const { facility, tester } = await loadFixture(deploy)
@@ -42,13 +32,38 @@ describe("Facility contract", function () {
       value: transferAmount,
     });
 
+    const contractBalance = await ethers.provider.getBalance(facility.getAddress());
+    expect(contractBalance).to.equal(transferAmount);
+
     await expect(
         facility.connect(tester).requestUpdate()
       ).to.emit(facility, "RequestingUpdate")
         .withArgs(tester.address)
   })
+  
+  it('Updates token allocation for a given address', async () => {
+    const { facility, admin, tester } = await loadFixture(deploy)    
+    const newValue = 1_500_100_900
 
-  it('Allows claiming available tokens allocated to a given address')
+    await expect(
+      facility.connect(admin).updateAllocation(tester.address, newValue)
+    ).to.emit(facility, "AllocationUpdated")
+      .withArgs(tester.address, newValue)
+  })
+
+  it('Allows claiming available tokens allocated to a given address', async () => {
+    const { facility, admin, tester } = await loadFixture(deploy)   
+    const newValue = 1_500_300_500
+
+    await facility.connect(admin).updateAllocation(tester.address, newValue)
+
+    await expect(
+      facility.connect(tester).claimAllocation()
+    ).to.emit(facility, "AllocationClaimed")
+      .withArgs(tester.address, newValue)
+
+    
+  })
 
   it('Ignores unauthorized token allocation updates')
 

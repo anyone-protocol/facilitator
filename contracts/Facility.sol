@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using SafeMath for uint256;
@@ -14,16 +15,17 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
 
-    address public tokenContract;
+    address public tokenContractAddress;
 
     mapping(address => uint256) public gasAvailable;
     mapping(address => uint256) public gasUsed;
     mapping(address => uint256) public tokenAllocation;
     mapping(address => uint256) public tokenClaimed;
 
+    event GasBudgetReceived(address indexed sender, uint256 amount);
     event RequestingUpdate(address indexed _account);
     event AllocationUpdated(address indexed _account, uint256 _value);
-    event GasBudgetReceived(address indexed sender, uint256 amount);
+    event AllocationClaimed(address indexed _account, uint256 _value);
 
     receive() external payable {
         gasAvailable[msg.sender] += msg.value;
@@ -63,13 +65,54 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         emit AllocationUpdated(_account, _value);
     }
 
+    function claimAllocation()
+        external 
+        whenNotPaused
+    {
+        address requestingAccount = msg.sender;
+        require(
+            requestingAccount != address(0),
+            "Facility: can't claim allocation for 0x0"
+        );
+        
+        uint256 available = tokenAllocation[requestingAccount];
+        require(
+            available > 0,
+            "Facility: no tokens allocated for sender"
+        );
+
+        uint256 claimed = tokenClaimed[requestingAccount];
+        require(
+            available > claimed,
+            "Facility: no tokens available to claim"
+        );
+
+        // IERC20 token = IERC20(tokenContractAddress);
+        // uint256 contractBalance = token.balanceOf(address(this));
+        uint256 contractBalance = 10_000_000_000_000;
+
+        uint256 claimable = available - claimed;
+        require(
+            contractBalance > claimable,
+            "Facility: not enough tokens to claim"
+        );
+
+        // require(
+        //     token.transfer(msg.sender, claimable), 
+        //     "Facility: transfer of claimable tokens failed"
+        // );
+
+        tokenClaimed[requestingAccount] = available;
+        emit AllocationClaimed(requestingAccount, claimable);
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
     function initialize(address _tokenContract) initializer public {
-        tokenContract = _tokenContract;
+        tokenContractAddress = _tokenContract;
         
         __Pausable_init();
         __AccessControl_init();
