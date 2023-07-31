@@ -69,19 +69,18 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         external 
         whenNotPaused
     {
-        address requestingAccount = msg.sender;
         require(
-            requestingAccount != address(0),
+            msg.sender != address(0),
             "Facility: can't claim allocation for 0x0"
         );
         
-        uint256 available = tokenAllocation[requestingAccount];
+        uint256 available = tokenAllocation[msg.sender];
         require(
             available > 0,
             "Facility: no tokens allocated for sender"
         );
 
-        uint256 claimed = tokenClaimed[requestingAccount];
+        uint256 claimed = tokenClaimed[msg.sender];
         require(
             available > claimed,
             "Facility: no tokens available to claim"
@@ -102,8 +101,8 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         //     "Facility: transfer of claimable tokens failed"
         // );
 
-        tokenClaimed[requestingAccount] = available;
-        emit AllocationClaimed(requestingAccount, claimable);
+        tokenClaimed[msg.sender] = available;
+        emit AllocationClaimed(msg.sender, claimable);
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
