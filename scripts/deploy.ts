@@ -11,10 +11,11 @@ async function main() {
     port: process.env.CONSUL_PORT,
   });
 
-  const atorContractAddress: string = await consul.kv.get({
+  const atorContractAddress: string = (await consul.kv.get({
     key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
     token: consulToken
-  })
+  })).Value
+
   console.log(`Deploying facility with ator contract: ${atorContractAddress}`)
 
   const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY
