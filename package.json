@@ -10,14 +10,20 @@
   "license": "AGPL-3.0-only",
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
-    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
-    "@openzeppelin/contracts-upgradeable": "^4.8.3",
-    "@openzeppelin/hardhat-upgrades": "^2.0.0",
+    "@openzeppelin/hardhat-upgrades": "^2.0.2",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.15.11",
+    "chai": "^4.3.7",
+    "consul": "^1.2.0",
     "dotenv": "^16.3.1",
-    "ethers": "^6.6.4",
-    "hardhat": "^2.16.1"
+    "ethers": "^6.6.7",
+    "hardhat": "^2.13.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2"
+    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts-upgradeable": "^4.8.3"
   }
 }
