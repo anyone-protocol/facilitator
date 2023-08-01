@@ -18,9 +18,8 @@ const config: HardhatUserConfig = {
   },
   networks: {
     goerli: {
-      url: '',
-      // url: GOERLI_RPC_URL,
-      // accounts: [GOERLI_PRIVATE_KEY],
+      url: "https://ethereum-goerli.publicnode.com",
+      accounts: [],
       timeout: 1800000
     },
   },
