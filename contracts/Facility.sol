@@ -86,20 +86,19 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: no tokens available to claim"
         );
 
-        // IERC20 token = IERC20(tokenContractAddress);
-        // uint256 contractBalance = token.balanceOf(address(this));
-        uint256 contractBalance = 10_000_000_000_000;
-
+        IERC20 token = IERC20(tokenContractAddress);
+        uint256 contractBalance = token.balanceOf(address(this));
+        
         uint256 claimable = available - claimed;
         require(
             contractBalance > claimable,
             "Facility: not enough tokens to claim"
         );
 
-        // require(
-        //     token.transfer(msg.sender, claimable), 
-        //     "Facility: transfer of claimable tokens failed"
-        // );
+        require(
+            token.transfer(msg.sender, claimable), 
+            "Facility: transfer of claimable tokens failed"
+        );
 
         tokenClaimed[msg.sender] = available;
         emit AllocationClaimed(msg.sender, claimable);
