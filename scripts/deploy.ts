@@ -4,14 +4,14 @@ import Consul from "consul"
 
 async function main() {
   const consulToken = process.env.CONSUL_TOKEN || 'no-token'
-  
+
   console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
   const consul = new Consul({
     host: process.env.CONSUL_IP,
     port: process.env.CONSUL_PORT,
   });
 
-  const atorContractAddress: string = consul.kv.get({
+  const atorContractAddress: string = await consul.kv.get({
     key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
     token: consulToken
   })
