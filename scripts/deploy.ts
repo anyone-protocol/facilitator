@@ -3,18 +3,22 @@ import { ethers, upgrades } from 'hardhat'
 import Consul from "consul"
 
 async function main() {
-  const consulToken = process.env.CONSUL_TOKEN || 'no-token'
+  let consul
+  const consulToken = process.env.CONSUL_TOKEN || undefined
+  let atorContractAddress = process.env.ATOR_TOKEN_CONTRACT_ADDRESS
 
-  console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
-  const consul = new Consul({
-    host: process.env.CONSUL_IP,
-    port: process.env.CONSUL_PORT,
-  });
+  if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
+    console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
+    consul = new Consul({
+      host: process.env.CONSUL_IP,
+      port: process.env.CONSUL_PORT,
+    });
 
-  const atorContractAddress: string = (await consul.kv.get({
-    key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
-    token: consulToken
-  })).Value
+    atorContractAddress = (await consul.kv.get({
+      key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
+      token: consulToken
+    })).Value
+  }
 
   console.log(`Deploying facility with ator contract: ${atorContractAddress}`)
 
