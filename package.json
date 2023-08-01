@@ -17,12 +17,12 @@
     "chai": "^4.3.7",
     "consul": "^1.2.0",
     "dotenv": "^16.3.1",
-    "ethers": "^6.6.7",
     "hardhat": "^2.13.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@openzeppelin/contracts": "^4.9.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.3"
   }
