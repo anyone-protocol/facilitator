@@ -3,7 +3,20 @@ import { ethers, upgrades } from 'hardhat'
 import Consul from "consul"
 
 async function main() {
-  const ATOR_TOKEN_CONTRACT_ADDRESS = process.env.ATOR_TOKEN_CONTRACT_ADDRESS || ''
+  const consulToken = process.env.CONSUL_TOKEN || 'no-token'
+  
+  console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
+  const consul = new Consul({
+    host: process.env.CONSUL_IP,
+    port: process.env.CONSUL_PORT,
+  });
+
+  const atorContractAddress: string = consul.kv.get({
+    key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
+    token: consulToken
+  })
+  console.log(`Deploying facility with ator contract: ${atorContractAddress}`)
+
   const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY
   const [ owner ] = await ethers.getSigners()
 
@@ -20,7 +33,7 @@ async function main() {
   
   const instance = await upgrades.deployProxy(
     Contract,
-    [ ATOR_TOKEN_CONTRACT_ADDRESS ]
+    [ atorContractAddress ]
   )
   await instance.waitForDeployment()
   const proxyContractAddress = await instance.getAddress()
@@ -33,12 +46,6 @@ async function main() {
 
   if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
     const consulKey = process.env.CONSUL_KEY || 'facilitator-goerli/test-deploy'
-    const consulToken = process.env.CONSUL_TOKEN || 'no-token'
-    console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
-    const consul = new Consul({
-      host: process.env.CONSUL_IP,
-      port: process.env.CONSUL_PORT,
-    });
 
     const updateResult = await consul.kv.set({
       key: consulKey,

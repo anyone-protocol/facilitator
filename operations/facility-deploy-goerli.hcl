@@ -11,7 +11,7 @@ job "facility-deploy-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.1.5"
+            image = "ghcr.io/ator-development/facilitator:0.1.6"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/deploy.ts"]
@@ -28,7 +28,6 @@ job "facility-deploy-goerli" {
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
             {{end}}
-            ATOR_TOKEN_CONTRACT_ADDRESS="[[ consulKey "ator-goerli/address" ]]"
             EOH
             destination = "secrets/file.env"
             env         = true
@@ -39,6 +38,7 @@ job "facility-deploy-goerli" {
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
             CONSUL_KEY="facilitator-goerli/address"
+            ATOR_TOKEN_KEY="ator-goerli/address"
         }
 
         restart {
