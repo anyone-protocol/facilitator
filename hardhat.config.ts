@@ -1,28 +1,26 @@
-import { HardhatUserConfig } from "hardhat/config";
-// import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-ethers";
-import "@openzeppelin/hardhat-upgrades";
+require('@nomiclabs/hardhat-ethers')
 
-const GOERLI_RPC_URL = process.env.GOERLI_RPC_URL
-const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY 
-  || "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd" // HardHat dev key no. 13
-
-const config: HardhatUserConfig = {
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
   solidity: {
     version: "0.8.19",
     settings: {
       optimizer: {
-        enabled: true
+        enabled: true,
+        runs: 5
       },
     },
   },
   networks: {
-    goerli: {
-      url: GOERLI_RPC_URL,
-      accounts: [GOERLI_PRIVATE_KEY],
+    hardhat: {
+      gas: 12000000,
+      blockGasLimit: 0x1fffffffffffff,
+      allowUnlimitedContractSize: true,
       timeout: 1800000
     },
-  },
+    goerli: {
+      url: "https://ethereum-goerli.publicnode.com",
+      accounts: [],
+    },
+  }
 };
-
-export default config;
