@@ -23,7 +23,6 @@
     "typescript": "^5.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@openzeppelin/contracts": "^4.9.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.3"
   }
