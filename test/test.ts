@@ -8,8 +8,6 @@ const GasolatorAddress: AddressLike = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293B
 
 describe("Facility contract", function () {
 
-  
-
   async function deploy() {
     const Facility = await ethers.getContractFactory('Facility')
     const [ admin, tester ] = await ethers.getSigners()

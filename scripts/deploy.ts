@@ -32,13 +32,17 @@ async function main() {
       )
     : owner
   
-  console.log(`Deploying contract with deployer ${deployer.address}...`)
+  const gasolatorAddress = process.env.GASOLATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
+
+  console.log(`Deploying facility with gasolator ${gasolatorAddress}...`)
+  
+  console.log(`Deploying facility with deployer ${deployer.address}...`)
   
   const Contract = await ethers.getContractFactory('Facility', deployer)
   
   const instance = await upgrades.deployProxy(
     Contract,
-    [ atorContractAddress ]
+    [ atorContractAddress, gasolatorAddress ]
   )
   await instance.waitForDeployment()
   const proxyContractAddress = await instance.getAddress()

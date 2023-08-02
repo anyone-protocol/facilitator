@@ -11,7 +11,7 @@ job "facility-deploy-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.1.8"
+            image = "ghcr.io/ator-development/facilitator:0.2.1"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/deploy.ts"]
@@ -27,6 +27,7 @@ job "facility-deploy-goerli" {
                 DEPLOYER_PRIVATE_KEY="{{.Data.data.OWNER_KEY}}"
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
+                GASOLATOR_ADDRESS="{{.Data.data.GASOLATOR_ADDRESS}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
