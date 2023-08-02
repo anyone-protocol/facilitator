@@ -3,6 +3,7 @@ import { ethers, upgrades } from "hardhat";
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
 
 const TokenContractAddress = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa'
+const GasolatorAddress = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' // Hardhat #1
 
 describe("Facility contract", function () {
 
@@ -10,7 +11,7 @@ describe("Facility contract", function () {
     const Facility = await ethers.getContractFactory('Facility')
     const [ admin, tester ] = await ethers.getSigners()
 
-    const facility = await upgrades.deployProxy(Facility, [TokenContractAddress])
+    const facility = await upgrades.deployProxy(Facility, [TokenContractAddress, GasolatorAddress])
     
     await facility.waitForDeployment()
 
@@ -32,8 +33,8 @@ describe("Facility contract", function () {
       value: transferAmount,
     });
 
-    const contractBalance = await ethers.provider.getBalance(facility.getAddress());
-    expect(contractBalance).to.equal(transferAmount);
+    const contractBalance = await ethers.provider.getBalance(GasolatorAddress);
+    expect(contractBalance).to.equal(transferAmount + BigInt(1000));
 
     await expect(
         facility.connect(tester).requestUpdate()

@@ -16,6 +16,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
 
     address public tokenContractAddress;
+    address payable public gasolatorAddress;
 
     mapping(address => uint256) public gasAvailable;
     mapping(address => uint256) public gasUsed;
@@ -29,6 +30,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
 
     receive() external payable {
         gasAvailable[msg.sender] += msg.value;
+        gasolatorAddress.transfer(msg.value);
         emit GasBudgetReceived(msg.sender, msg.value);
     }
 
@@ -109,8 +111,9 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         _disableInitializers();
     }
 
-    function initialize(address _tokenContract) initializer public {
+    function initialize(address _tokenContract, address payable _gasolatorAddress) initializer public {
         tokenContractAddress = _tokenContract;
+        gasolatorAddress = _gasolatorAddress;
         
         __Pausable_init();
         __AccessControl_init();
