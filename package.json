@@ -9,7 +9,9 @@
   "author": "",
   "license": "AGPL-3.0-only",
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@openzeppelin/hardhat-upgrades": "^2.0.2",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",

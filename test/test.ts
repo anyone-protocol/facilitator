@@ -1,11 +1,14 @@
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
+import { AddressLike } from "ethers";
 
 const TokenContractAddress = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa'
-const GasolatorAddress = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' // Hardhat #1
+const GasolatorAddress: AddressLike = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2
 
 describe("Facility contract", function () {
+
+  
 
   async function deploy() {
     const Facility = await ethers.getContractFactory('Facility')
@@ -20,12 +23,14 @@ describe("Facility contract", function () {
 
   it('Deploys with a reference to provided token contract address', async () => {
     const { facility } = await loadFixture(deploy)
-    expect(await facility.tokenContract()).to.equal(TokenContractAddress)
+    expect(await facility.tokenContractAddress()).to.equal(TokenContractAddress)
   })
 
   it('Emits an event requesting allocation update for a given address', async () => {
     const { facility, tester } = await loadFixture(deploy)
     
+    const previousBalance = await ethers.provider.getBalance(GasolatorAddress);
+
     const transferAmount = ethers.parseEther("0.0123");
     // Send ETH to the contract's address from tester
     await tester.sendTransaction({
@@ -33,8 +38,8 @@ describe("Facility contract", function () {
       value: transferAmount,
     });
 
-    const contractBalance = await ethers.provider.getBalance(GasolatorAddress);
-    expect(contractBalance).to.equal(transferAmount + BigInt(1000));
+    const gasolatorBalance = await ethers.provider.getBalance(GasolatorAddress);
+    expect(gasolatorBalance).to.equal(transferAmount + previousBalance);
 
     await expect(
         facility.connect(tester).requestUpdate()
