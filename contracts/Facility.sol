@@ -80,7 +80,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     }
 
     function _updateAllocation(address addr, uint256 _value) 
-        public 
+        external 
         whenNotPaused 
         onlyRole(OPERATOR_ROLE)
     {
@@ -91,14 +91,13 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
 
         allocatedTokens[addr] = _value;
         usedBudget[addr] += GAS_COST * GAS_PRICE;
+        emit AllocationUpdated(addr, _value);
 
         uint256 remainingBudget = 0;
         if (availableBudget[addr] >= usedBudget[addr]) {
             remainingBudget = availableBudget[addr] - usedBudget[addr];
         }
-        
         emit GasBudgetUpdated(addr, remainingBudget);
-        emit AllocationUpdated(addr, _value);
     }
 
     function updateAndClaimAllocation(address addr, uint256 _value)

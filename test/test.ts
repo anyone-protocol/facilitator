@@ -10,30 +10,30 @@ describe("Facility contract", function () {
     const [ admin, tester, operator ] = await ethers.getSigners()
 
     const token = await Token.deploy(100_000_000n * BigInt(10e18))
-    const tokenContractAddress = await token.getAddress()
+    const tokenAddress = await token.getAddress()
 
     const facility = await upgrades.deployProxy(
       Facility,
-      [ tokenContractAddress, operator.address ]
+      [ tokenAddress, operator.address ]
     )
     await facility.waitForDeployment()
-    const facilityTokenAddress = await facility.getAddress()
+    const facilityAddress = await facility.getAddress()
 
     return {
       Facility,
       facility,
-      facilityTokenAddress,
+      facilityAddress,
       admin,
       tester,
       operator,
       token,
-      tokenContractAddress
+      tokenAddress
     }
   }
 
   it('Deploys with a reference to provided token contract address', async () => {
-    const { facility, tokenContractAddress } = await loadFixture(deploy)
-    expect(await facility.tokenContract()).to.equal(tokenContractAddress)
+    const { facility, tokenAddress } = await loadFixture(deploy)
+    expect(await facility.tokenAddress()).to.equal(tokenAddress)
   })
 
   it('Emits an event when eth-for-gas budget is updated for a given address', async () => {
@@ -66,10 +66,6 @@ describe("Facility contract", function () {
     )
   })
 
-  it('Requires available eth-for-gas to be greater than used to request update')
-  
-  it('Requires budget be greater than required amount to request update')
-
   it('Receives and requests updates in a single call', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)
 
@@ -88,7 +84,7 @@ describe("Facility contract", function () {
   it('Updates token allocation for a given address, tracking budget', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)    
     const newValue = 1_500_100_900
-
+    console.log(`Address: ${operator.address} ${tester.address}`)
     await expect(
       // @ts-ignore
       facility.connect(operator).updateAllocation(tester.address, newValue)
@@ -109,7 +105,7 @@ describe("Facility contract", function () {
     const {
       admin,
       facility,
-      facilityTokenAddress,
+      facilityAddress,
       operator,
       tester,
       token 
@@ -118,7 +114,7 @@ describe("Facility contract", function () {
 
     // @ts-ignore
     await token.connect(admin).transfer(
-      facilityTokenAddress,
+      facilityAddress,
       2_000_000n * BigInt(10e18)
     )
 
@@ -131,6 +127,14 @@ describe("Facility contract", function () {
     ).to.emit(facility, "AllocationClaimed")
       .withArgs(tester.address, newValue)
   })
+
+  it.skip('Requires available eth-for-gas to be greater than used to request update', async() => {
+
+  })
+  
+  it('Requires budget be greater than required amount to request update')
+
+  it('Updates and delivers claimable tokens in one step')
 
   it('Ignores unauthorized token allocation updates')
 

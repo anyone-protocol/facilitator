@@ -25,9 +25,11 @@ async function main() {
         },
       ]
 
-    const provider = (isLocal)? 
-        new ethers.JsonRpcProvider('http://127.0.0.1:8545/') : 
-        new ethers.JsonRpcProvider(process.env.JSON_RPC || 'http://127.0.0.1:8545/')
+    const provider = 
+        new ethers.JsonRpcProvider(
+            (isLocal)? 'http://127.0.0.1:8545/' : 
+                process.env.JSON_RPC || 'http://127.0.0.1:8545/'
+        )
     
     const [ owner, tester, dummy, ops ] = await ethers.getSigners() 
 
