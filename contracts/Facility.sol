@@ -13,57 +13,67 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
+    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
-    address public tokenContractAddress;
-    address payable public gasolatorAddress;
+    address public tokenContract;
+    address payable public operator;
 
-    mapping(address => uint256) public gasAvailable;
-    mapping(address => uint256) public gasUsed;
-    mapping(address => uint256) public tokenAllocation;
-    mapping(address => uint256) public tokenClaimed;
+    uint256 public GAS_COST;
 
-    event GasBudgetReceived(address indexed sender, uint256 amount);
+    mapping(address => uint256) public available;
+    mapping(address => uint256) public used;
+    mapping(address => uint256) public allocated;
+    mapping(address => uint256) public claimed;
+
+    event GasBudgetUpdated(address indexed sender, uint256 amount);
     event RequestingUpdate(address indexed _account);
     event AllocationUpdated(address indexed _account, uint256 _value);
     event AllocationClaimed(address indexed _account, uint256 _value);
 
-    receive() external payable {
-        gasAvailable[msg.sender] += msg.value;
-        gasolatorAddress.transfer(msg.value);
-        emit GasBudgetReceived(msg.sender, msg.value);
+    receive() external payable whenNotPaused {
+        available[msg.sender] += msg.value;
+        operator.transfer(msg.value);
+        emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
+    }
+
+    function receiveAndRequestUpdate() external payable whenNotPaused {
+        available[msg.sender] += msg.value;
+        operator.transfer(msg.value);
+        emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
+        this.requestUpdate();
     }
 
     function requestUpdate() external whenNotPaused {
         uint256 required = gasleft();
-        uint256 available = gasAvailable[msg.sender];
-        uint256 used = gasUsed[msg.sender];
+        uint256 _available = available[msg.sender];
+        uint256 _used = used[msg.sender];
 
         require(
-            available > used,
+            _available > _used,
             "Facility: requires user provided gas budget to create allocation updates"
         );
         require(
-            ( available - used ) >= required,
+            ( _available - _used ) >= required,
             "Facility: user provided budget is depleted, send ETH to contract address to refill"
         );
+        
         emit RequestingUpdate(msg.sender);
     }
 
     function updateAllocation(address _account, uint256 _value) 
         external 
         whenNotPaused 
-        onlyRole(VALIDATOR_ROLE)
+        onlyRole(OPERATOR_ROLE)
     {
-        uint256 requiredGas = gasleft();
-
         require(
             _account != address(0), 
             "Facility: can't update allocation for 0x0"
         );
-        tokenAllocation[_account] = _value;
+        allocated[_account] = _value;
         
-        gasUsed[msg.sender] += requiredGas;
+        used[msg.sender] += GAS_COST;
+        
+        emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
         emit AllocationUpdated(_account, _value);
     }
 
@@ -76,34 +86,34 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: can't claim allocation for 0x0"
         );
         
-        uint256 available = tokenAllocation[msg.sender];
+        uint256 _available = allocated[msg.sender];
         require(
-            available > 0,
+            _available > 0,
             "Facility: no tokens allocated for sender"
         );
 
-        uint256 claimed = tokenClaimed[msg.sender];
+        uint256 _claimed = claimed[msg.sender];
         require(
-            available > claimed,
+            _available > _claimed,
             "Facility: no tokens available to claim"
         );
 
-        IERC20 token = IERC20(tokenContractAddress);
+        IERC20 token = IERC20(tokenContract);
         uint256 contractBalance = token.balanceOf(address(this));
         
-        uint256 claimable = available - claimed;
+        uint256 _claimable = _available - _claimed;
         require(
-            contractBalance > claimable,
+            contractBalance > _claimable,
             "Facility: not enough tokens to claim"
         );
 
         require(
-            token.transfer(msg.sender, claimable), 
+            token.transfer(msg.sender, _claimable), 
             "Facility: transfer of claimable tokens failed"
         );
 
-        tokenClaimed[msg.sender] = available;
-        emit AllocationClaimed(msg.sender, claimable);
+        claimed[msg.sender] = _available;
+        emit AllocationClaimed(msg.sender, _claimable);
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -111,9 +121,14 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         _disableInitializers();
     }
 
-    function initialize(address _tokenContract, address payable _gasolatorAddress) initializer public {
-        tokenContractAddress = _tokenContract;
-        gasolatorAddress = _gasolatorAddress;
+    function initialize(
+        address _tokenContract, 
+        address payable _operator
+    ) initializer public {
+        tokenContract = _tokenContract;
+        operator = _operator;
+        
+        GAS_COST = 500_000;
         
         __Pausable_init();
         __AccessControl_init();
@@ -122,7 +137,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(PAUSER_ROLE, msg.sender);
         _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(VALIDATOR_ROLE, msg.sender);
+        _grantRole(OPERATOR_ROLE, operator);
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {
