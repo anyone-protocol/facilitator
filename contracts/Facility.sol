@@ -19,6 +19,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     address payable public operator;
 
     uint256 public GAS_COST;
+    uint256 public GAS_PRICE;
 
     mapping(address => uint256) public available;
     mapping(address => uint256) public used;
@@ -44,7 +45,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     }
 
     function requestUpdate() external whenNotPaused {
-        uint256 required = gasleft();
+        uint256 required = GAS_COST * GAS_PRICE;
         uint256 _available = available[msg.sender];
         uint256 _used = used[msg.sender];
 
@@ -71,7 +72,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         );
         allocated[_account] = _value;
         
-        used[msg.sender] += GAS_COST;
+        used[msg.sender] += GAS_COST * GAS_PRICE;
         
         emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
         emit AllocationUpdated(_account, _value);
@@ -128,8 +129,9 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         tokenContract = _tokenContract;
         operator = _operator;
         
-        GAS_COST = 500_000;
-        
+        GAS_COST = 21_644;
+        GAS_PRICE = 40 * 1_000_000_000;
+
         __Pausable_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
