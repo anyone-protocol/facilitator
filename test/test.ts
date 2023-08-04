@@ -84,10 +84,10 @@ describe("Facility contract", function () {
   it('Updates token allocation for a given address, tracking budget', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)    
     const newValue = 1_500_100_900
-    const opFacility = facility.connect(operator) 
+    
     await expect(
       // @ts-ignore
-      opFacility.updateAllocation(tester.address, newValue)
+      facility.connect(operator).updateAllocation(tester.address, newValue)
     ).to.emit(facility, "AllocationUpdated")
       .withArgs(tester.address, newValue)
 
@@ -128,11 +128,28 @@ describe("Facility contract", function () {
       .withArgs(tester.address, newValue)
   })
 
-  it.skip('Requires available eth-for-gas to be greater than used to request update', async() => {
+  it('Requires user provided gas budget to create allocation updates', async() => {
+    const { facility, tester } = await loadFixture(deploy)
 
+    await expect(
+      // @ts-ignore
+      facility.connect(tester)._requestUpdate(tester.address)
+    ).to.be.revertedWith('Facility: requires user provided gas budget to create allocation updates')
   })
   
-  it('Requires budget be greater than required amount to request update')
+  it('Requires budget be greater than required amount to request update', async() => {
+    const { facility, tester } = await loadFixture(deploy)
+    
+    await tester.sendTransaction({
+      to: facility.getAddress(),
+      value: 100,
+    });
+
+    await expect(
+      // @ts-ignore
+      facility.connect(tester)._requestUpdate(tester.address)
+    ).to.be.revertedWith('Facility: user provided budget is depleted, send ETH to contract address to refill')
+  })
 
   it('Updates and delivers claimable tokens in one step')
 
