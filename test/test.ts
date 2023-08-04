@@ -84,10 +84,10 @@ describe("Facility contract", function () {
   it('Updates token allocation for a given address, tracking budget', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)    
     const newValue = 1_500_100_900
-    console.log(`Address: ${operator.address} ${tester.address}`)
+    const opFacility = facility.connect(operator) 
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAllocation(tester.address, newValue)
+      opFacility.updateAllocation(tester.address, newValue)
     ).to.emit(facility, "AllocationUpdated")
       .withArgs(tester.address, newValue)
 

@@ -76,14 +76,6 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         whenNotPaused 
         onlyRole(OPERATOR_ROLE)
     {
-        this._updateAllocation(addr, _value);
-    }
-
-    function _updateAllocation(address addr, uint256 _value) 
-        external 
-        whenNotPaused 
-        onlyRole(OPERATOR_ROLE)
-    {
         require(
             addr != address(0), 
             "Facility: can't update allocation for 0x0"
@@ -105,7 +97,21 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         whenNotPaused 
         onlyRole(OPERATOR_ROLE)
     {
-        this._updateAllocation(addr, _value);
+        require(
+            addr != address(0), 
+            "Facility: can't update allocation for 0x0"
+        );
+
+        allocatedTokens[addr] = _value;
+        usedBudget[addr] += GAS_COST * GAS_PRICE;
+        emit AllocationUpdated(addr, _value);
+
+        uint256 remainingBudget = 0;
+        if (availableBudget[addr] >= usedBudget[addr]) {
+            remainingBudget = availableBudget[addr] - usedBudget[addr];
+        }
+        emit GasBudgetUpdated(addr, remainingBudget);
+
         this._claimAllocation(addr);
     }
 
@@ -125,13 +131,13 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: can't claim allocation for 0x0"
         );
         
-        uint256 allocated = allocatedTokens[msg.sender];
+        uint256 allocated = allocatedTokens[addr];
         require(
             allocated > 0,
             "Facility: no tokens allocated for sender"
         );
 
-        uint256 _claimed = claimedTokens[msg.sender];
+        uint256 _claimed = claimedTokens[addr];
         require(
             allocated > _claimed,
             "Facility: no tokens available to claim"
@@ -147,12 +153,12 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         );
 
         require(
-            token.transfer(msg.sender, _claimable), 
+            token.transfer(addr, _claimable), 
             "Facility: transfer of claimable tokens failed"
         );
 
-        claimedTokens[msg.sender] = allocated;
-        emit AllocationClaimed(msg.sender, _claimable);
+        claimedTokens[addr] = allocated;
+        emit AllocationClaimed(addr, _claimable);
     }
 
     function setGasCost(uint256 _value) 
