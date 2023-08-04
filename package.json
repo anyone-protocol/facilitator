@@ -1,6 +1,6 @@
 {
   "name": "facility",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Routines necessary to claim reward tokens",
   "main": "index.js",
   "scripts": {
