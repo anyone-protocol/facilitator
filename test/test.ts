@@ -85,7 +85,7 @@ describe("Facility contract", function () {
     expect(newBalance).to.equal(value + previousBalance)
   })
 
-  it('Updates token allocation for a given address', async () => {
+  it('Updates token allocation for a given address, tracking budget', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)    
     const newValue = 1_500_100_900
 
@@ -94,6 +94,15 @@ describe("Facility contract", function () {
       facility.connect(operator).updateAllocation(tester.address, newValue)
     ).to.emit(facility, "AllocationUpdated")
       .withArgs(tester.address, newValue)
+
+    const GAS_PRICE: bigint = await facility.GAS_PRICE()
+    const GAS_COST: bigint = await facility.GAS_COST()
+    const requiredBudget = GAS_PRICE * GAS_COST
+
+    const operatorUsedBudget = await facility.usedBudget(operator.address)
+    expect(operatorUsedBudget).to.equal(0n)
+    const testerUsedBudget = await facility.usedBudget(tester.address)
+    expect(testerUsedBudget).to.equal(requiredBudget)
   })
 
   it('Allows claiming tokens allocated to a given address', async () => {
