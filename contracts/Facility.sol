@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using SafeMath for uint256;
@@ -70,11 +71,16 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             _account != address(0), 
             "Facility: can't update allocation for 0x0"
         );
+
         allocated[_account] = _value;
-        
         used[msg.sender] += GAS_COST * GAS_PRICE;
+
+        uint256 remainingBudget = 0;
+        if (available[msg.sender] >= used[msg.sender]) {
+            remainingBudget = available[msg.sender] - used[msg.sender];
+        }
         
-        emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
+        emit GasBudgetUpdated(msg.sender, remainingBudget);
         emit AllocationUpdated(_account, _value);
     }
 
