@@ -81,10 +81,8 @@ describe("Facility contract", function () {
       .to.emit(facility, 'RequestingUpdate')
       .withArgs(tester.address)
 
-    const newBalance = await ethers.provider.getBalance(operator.address);
-    expect(newBalance).to.equal(value + previousBalance);
-
-
+    const newBalance = await ethers.provider.getBalance(operator.address)
+    expect(newBalance).to.equal(value + previousBalance)
   })
 
   it('Updates token allocation for a given address', async () => {
