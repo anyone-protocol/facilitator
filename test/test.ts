@@ -70,6 +70,23 @@ describe("Facility contract", function () {
   
   it('Requires budget be greater than required amount to request update')
 
+  it('Receives and requests updates in a single call', async () => {
+    const { facility, operator, tester } = await loadFixture(deploy)
+
+    const previousBalance = await ethers.provider.getBalance(operator.address)
+
+    const value = ethers.parseEther('0.0123')
+    // @ts-ignore
+    await expect(facility.connect(tester).receiveAndRequestUpdate({ value }))
+      .to.emit(facility, 'RequestingUpdate')
+      .withArgs(tester.address)
+
+    const newBalance = await ethers.provider.getBalance(operator.address);
+    expect(newBalance).to.equal(value + previousBalance);
+
+
+  })
+
   it('Updates token allocation for a given address', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)    
     const newValue = 1_500_100_900

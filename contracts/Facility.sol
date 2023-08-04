@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using SafeMath for uint256;
@@ -41,13 +42,17 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         available[msg.sender] += msg.value;
         operator.transfer(msg.value);
         emit GasBudgetUpdated(msg.sender, available[msg.sender] - used[msg.sender]);
-        this.requestUpdate();
+        this._requestUpdate(msg.sender);
     }
 
     function requestUpdate() external whenNotPaused {
+        this._requestUpdate(msg.sender);
+    }
+
+    function _requestUpdate(address addr) external whenNotPaused {
         uint256 required = GAS_COST * GAS_PRICE;
-        uint256 _available = available[msg.sender];
-        uint256 _used = used[msg.sender];
+        uint256 _available = available[addr];
+        uint256 _used = used[addr];
 
         require(
             _available > _used,
@@ -58,7 +63,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: user provided budget is depleted, send ETH to contract address to refill"
         );
         
-        emit RequestingUpdate(msg.sender);
+        emit RequestingUpdate(addr);
     }
 
     function updateAllocation(address _account, uint256 _value) 
