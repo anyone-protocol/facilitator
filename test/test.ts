@@ -151,14 +151,128 @@ describe("Facility contract", function () {
     ).to.be.revertedWith('Facility: user provided budget is depleted, send ETH to contract address to refill')
   })
 
-  it('Updates and delivers claimable tokens in one step')
+  it('Updates and delivers claimable tokens in one step', async() => {
+    const {
+      admin,
+      facility,
+      facilityAddress,
+      operator,
+      tester,
+      token 
+    } = await loadFixture(deploy)
+    const newValue = 1_500_300_500
 
-  it('Ignores unauthorized token allocation updates')
+    // @ts-ignore
+    await token.connect(admin).transfer(
+      facilityAddress,
+      2_000_000n * BigInt(10e18)
+    )
 
-  it('Prevents claiming tokens when not enough are available')
+    await tester.sendTransaction({
+      to: facility.getAddress(),
+      value: 1n * BigInt(10e18),
+    });
 
-  it('Prevents claiming tokens when none are allocated')
+    await expect(
+      // @ts-ignore
+      await facility.connect(operator).updateAndClaimAllocation(tester.address, newValue)
+    ).to.emit(facility, "AllocationClaimed")
+      .withArgs(tester.address, newValue)
+  })
 
-  it('Prevents claiming tokens when already at limit')
+  it('Ignores unauthorized token allocation updates',async () => {
+    const { facility, operator, tester } = await loadFixture(deploy)    
+    const newValue = 1_500_100_900
+    
+    await expect(
+      // @ts-ignore
+      facility.connect(tester).updateAllocation(tester.address, newValue)
+    ).to.be.revertedWith(`AccessControl: account ${tester.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`)
+  })
+
+  it('Prevents claiming tokens when not enough are available', async () => {
+    const {
+      admin,
+      facility,
+      facilityAddress,
+      operator,
+      tester,
+      token 
+    } = await loadFixture(deploy)
+    const newValue = 1_500_300_500
+
+    // @ts-ignore
+    await token.connect(admin).transfer(
+      facilityAddress,
+      100n
+    )
+
+    // @ts-ignore
+    await facility.connect(operator).updateAllocation(tester.address, newValue)
+
+    await expect(
+      // @ts-ignore
+      facility.connect(tester).claimAllocation()
+    ).to.rejectedWith('Facility: not enough tokens to claim')
+  })
+
+  it('Prevents claiming tokens when none are allocated', async () => {
+    const {
+      admin,
+      facility,
+      facilityAddress,
+      operator,
+      tester,
+      token 
+    } = await loadFixture(deploy)
+    const newValue = 0
+
+    // @ts-ignore
+    await token.connect(admin).transfer(
+      facilityAddress,
+      100n
+    )
+
+    // @ts-ignore
+    await facility.connect(operator).updateAllocation(tester.address, newValue)
+
+    await expect(
+      // @ts-ignore
+      facility.connect(tester).claimAllocation()
+    ).to.rejectedWith('Facility: no tokens allocated for sender')
+  })
+
+  it('Prevents claiming tokens when already at limit',async () => {
+    const {
+      admin,
+      facility,
+      facilityAddress,
+      operator,
+      tester,
+      token 
+    } = await loadFixture(deploy)
+    const newValue = 1_500
+
+    // @ts-ignore
+    await token.connect(admin).transfer(
+      facilityAddress,
+      100n * BigInt(1e18)
+    )
+
+    // @ts-ignore
+    await facility.connect(operator).updateAllocation(tester.address, newValue)
+
+    await expect(
+      // @ts-ignore
+      facility.connect(tester).claimAllocation()
+    ).to.emit(facility, "AllocationClaimed")
+      .withArgs(tester.address, newValue)
+
+
+    await expect(
+      // @ts-ignore
+      facility.connect(tester).claimAllocation()
+    ).to.be.rejectedWith('Facility: no tokens available to claim')
+  })
 
 });
