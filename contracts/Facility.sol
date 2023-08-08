@@ -39,20 +39,19 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             availableBudget[msg.sender] - usedBudget[msg.sender]
         );
         
-        uint256 required = GAS_COST * GAS_PRICE;
-        uint256 available = msg.value + availableBudget[msg.sender];
-        uint256 used = usedBudget[msg.sender];
-
+        uint256 available = availableBudget[msg.sender];
         require(
             available > 0,
             "Facility: no user provided budget, send ETH to contract address to refill"
         );
+
+        uint256 used = usedBudget[msg.sender];
         require(
             available > used,
             "Facility: user provided budget is depleted, send ETH to contract address to refill"
         );
         require(
-            ( available - used ) >= required,
+            ( available - used ) >= ( GAS_COST * GAS_PRICE ),
             "Facility: not enough user provided budget, send ETH to contract address to refill"
         );
         
