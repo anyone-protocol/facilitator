@@ -36,44 +36,54 @@ describe("Facility contract", function () {
     expect(await facility.tokenAddress()).to.equal(tokenAddress)
   })
 
-  it('Emits an event when eth-for-gas budget is updated for a given address', async () => {
+  it('Emits an event when the gas budget is updated for a given address', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)
-    
-    const previousBalance = await ethers.provider.getBalance(operator.address);
-
-    const transferAmount = ethers.parseEther("0.0123");
-    // Send ETH to the contract's address from tester
-    await tester.sendTransaction({
-      to: facility.getAddress(),
-      value: transferAmount,
-    });
-
-    const newBalance = await ethers.provider.getBalance(operator.address);
-    expect(newBalance).to.equal(transferAmount + previousBalance);
 
     // @ts-ignore
-    await expect(facility.connect(tester).requestUpdate())
-      .to.emit(facility, "RequestingUpdate")
+    await expect(
+      await tester.sendTransaction({
+        to: facility.getAddress(),
+        value: ethers.parseEther("0.0123"),
+      })
+    ).to.emit(facility, "RequestingUpdate")
       .withArgs(tester.address)
   })
   
-  it('Reverts when requesting update and no eth-for-gas budget', async () => {
+  it('Reverts when requesting update and no user provided budget', async () => {
     const { facility, tester } = await loadFixture(deploy)
     
     // @ts-ignore
-    await expect(facility.connect(tester).requestUpdate()).to.be.revertedWith(
-      'Facility: requires user provided gas budget to create allocation updates'
+    await expect(tester.sendTransaction({
+      to: facility.getAddress(),
+      value: 0,
+    })).to.be.revertedWith(
+      'Facility: no user provided budget, send ETH to contract address to refill'
     )
   })
 
-  it('Receives and requests updates in a single call', async () => {
+  it('Reverts when requesting update and not enough user provided budget', async () => {
+    const { facility, tester } = await loadFixture(deploy)
+    
+    // @ts-ignore
+    await expect(tester.sendTransaction({
+      to: facility.getAddress(),
+      value: 1,
+    })).to.be.revertedWith(
+      'Facility: not enough user provided budget, send ETH to contract address to refill'
+    )
+  })
+
+  it('Sends received gas budget to the operator', async () => {
     const { facility, operator, tester } = await loadFixture(deploy)
 
     const previousBalance = await ethers.provider.getBalance(operator.address)
 
     const value = ethers.parseEther('0.0123')
     // @ts-ignore
-    await expect(facility.connect(tester).receiveAndRequestUpdate({ value }))
+    await expect(tester.sendTransaction({
+      to: facility.getAddress(),
+      value: value,
+    }))
       .to.emit(facility, 'RequestingUpdate')
       .withArgs(tester.address)
 
@@ -82,12 +92,19 @@ describe("Facility contract", function () {
   })
 
   it('Updates token allocation for a given address, tracking budget', async () => {
-    const { facility, operator, tester } = await loadFixture(deploy)    
+    const { facility, facilityAddress, operator, admin, tester, token } = await loadFixture(deploy)    
     const newValue = 1_500_100_900
     
+    
+    // @ts-ignore
+    await token.connect(admin).transfer(
+      facilityAddress,
+      2_000_000n * BigInt(10e18)
+    )
+
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAllocation(tester.address, newValue)
+      facility.connect(operator).updateAndClaim(tester.address, newValue)
     ).to.emit(facility, "AllocationUpdated")
       .withArgs(tester.address, newValue)
 
@@ -101,57 +118,7 @@ describe("Facility contract", function () {
     expect(testerUsedBudget).to.equal(requiredBudget)
   })
 
-  it('Allows claiming tokens allocated to a given address', async () => {
-    const {
-      admin,
-      facility,
-      facilityAddress,
-      operator,
-      tester,
-      token 
-    } = await loadFixture(deploy)
-    const newValue = 1_500_300_500
-
-    // @ts-ignore
-    await token.connect(admin).transfer(
-      facilityAddress,
-      2_000_000n * BigInt(10e18)
-    )
-
-    // @ts-ignore
-    await facility.connect(operator).updateAllocation(tester.address, newValue)
-
-    await expect(
-      // @ts-ignore
-      facility.connect(tester).claimAllocation()
-    ).to.emit(facility, "AllocationClaimed")
-      .withArgs(tester.address, newValue)
-  })
-
-  it('Requires user provided gas budget to create allocation updates', async() => {
-    const { facility, tester } = await loadFixture(deploy)
-
-    await expect(
-      // @ts-ignore
-      facility.connect(tester)._requestUpdate(tester.address)
-    ).to.be.revertedWith('Facility: requires user provided gas budget to create allocation updates')
-  })
-  
-  it('Requires budget be greater than required amount to request update', async() => {
-    const { facility, tester } = await loadFixture(deploy)
-    
-    await tester.sendTransaction({
-      to: facility.getAddress(),
-      value: 100,
-    });
-
-    await expect(
-      // @ts-ignore
-      facility.connect(tester)._requestUpdate(tester.address)
-    ).to.be.revertedWith('Facility: user provided budget is depleted, send ETH to contract address to refill')
-  })
-
-  it('Updates and delivers claimable tokens in one step', async() => {
+  it('Updates the log and delivers claimable tokens in one step', async() => {
     const {
       admin,
       facility,
@@ -175,7 +142,7 @@ describe("Facility contract", function () {
 
     await expect(
       // @ts-ignore
-      await facility.connect(operator).updateAndClaimAllocation(tester.address, newValue)
+      await facility.connect(operator).updateAndClaim(tester.address, newValue)
     ).to.emit(facility, "AllocationClaimed")
       .withArgs(tester.address, newValue)
   })
@@ -186,11 +153,11 @@ describe("Facility contract", function () {
     
     await expect(
       // @ts-ignore
-      facility.connect(tester).updateAllocation(tester.address, newValue)
+      facility.connect(tester).updateAndClaim(tester.address, newValue)
     ).to.be.revertedWith(`AccessControl: account ${tester.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`)
   })
 
-  it('Prevents claiming tokens when not enough are available', async () => {
+  it('Prevents claiming tokens when not enough tokens to claim', async () => {
     const {
       admin,
       facility,
@@ -199,24 +166,25 @@ describe("Facility contract", function () {
       tester,
       token 
     } = await loadFixture(deploy)
-    const newValue = 1_500_300_500
-
+    
     // @ts-ignore
     await token.connect(admin).transfer(
       facilityAddress,
       100n
     )
 
-    // @ts-ignore
-    await facility.connect(operator).updateAllocation(tester.address, newValue)
+    await tester.sendTransaction({
+      to: facility.getAddress(),
+      value: 1n * BigInt(10e18),
+    });
 
     await expect(
       // @ts-ignore
-      facility.connect(tester).claimAllocation()
-    ).to.rejectedWith('Facility: not enough tokens to claim')
+      facility.connect(operator).updateAndClaim(tester.address, 500)
+    ).to.be.revertedWith('Facility: not enough tokens to claim')
   })
 
-  it('Prevents claiming tokens when none are allocated', async () => {
+  it('Prevents claiming tokens when no tokens allocated for sender', async () => {
     const {
       admin,
       facility,
@@ -225,7 +193,6 @@ describe("Facility contract", function () {
       tester,
       token 
     } = await loadFixture(deploy)
-    const newValue = 0
 
     // @ts-ignore
     await token.connect(admin).transfer(
@@ -233,13 +200,10 @@ describe("Facility contract", function () {
       100n
     )
 
-    // @ts-ignore
-    await facility.connect(operator).updateAllocation(tester.address, newValue)
-
     await expect(
       // @ts-ignore
-      facility.connect(tester).claimAllocation()
-    ).to.rejectedWith('Facility: no tokens allocated for sender')
+      facility.connect(operator).updateAndClaim(tester.address, 0)
+    ).to.be.revertedWith('Facility: no tokens allocated for sender')
   })
 
   it('Prevents claiming tokens when already at limit',async () => {
@@ -259,20 +223,17 @@ describe("Facility contract", function () {
       100n * BigInt(1e18)
     )
 
-    // @ts-ignore
-    await facility.connect(operator).updateAllocation(tester.address, newValue)
-
     await expect(
       // @ts-ignore
-      facility.connect(tester).claimAllocation()
+      facility.connect(operator).updateAndClaim(tester.address, newValue)
     ).to.emit(facility, "AllocationClaimed")
       .withArgs(tester.address, newValue)
 
 
     await expect(
       // @ts-ignore
-      facility.connect(tester).claimAllocation()
-    ).to.be.rejectedWith('Facility: no tokens available to claim')
+      facility.connect(operator).updateAndClaim(tester.address, newValue)
+    ).to.be.revertedWith('Facility: no tokens available to claim')
   })
 
 });

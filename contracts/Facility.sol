@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using SafeMath for uint256;
 
@@ -38,40 +40,28 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             msg.sender,
             availableBudget[msg.sender] - usedBudget[msg.sender]
         );
-    }
-
-    function receiveAndRequestUpdate() external payable whenNotPaused {
-        availableBudget[msg.sender] += msg.value;
-        operatorAddress.transfer(msg.value);
-        emit GasBudgetUpdated(
-            msg.sender,
-            availableBudget[msg.sender] - usedBudget[msg.sender]
-        );
-        this._requestUpdate(msg.sender);
-    }
-
-    function requestUpdate() external whenNotPaused {
-        this._requestUpdate(msg.sender);
-    }
-
-    function _requestUpdate(address addr) public whenNotPaused {
+        
         uint256 required = GAS_COST * GAS_PRICE;
-        uint256 available = availableBudget[addr];
-        uint256 used = usedBudget[addr];
+        uint256 available = msg.value + availableBudget[msg.sender];
+        uint256 used = usedBudget[msg.sender];
 
         require(
+            available > 0,
+            "Facility: no user provided budget, send ETH to contract address to refill"
+        );
+        require(
             available > used,
-            "Facility: requires user provided gas budget to create allocation updates"
+            "Facility: user provided budget is depleted, send ETH to contract address to refill"
         );
         require(
             ( available - used ) >= required,
-            "Facility: user provided budget is depleted, send ETH to contract address to refill"
+            "Facility: not enough user provided budget, send ETH to contract address to refill"
         );
         
-        emit RequestingUpdate(addr);
+        emit RequestingUpdate(msg.sender);
     }
 
-    function updateAllocation(address addr, uint256 _value) 
+    function updateAndClaim(address addr, uint256 allocated)
         external 
         whenNotPaused 
         onlyRole(OPERATOR_ROLE)
@@ -81,30 +71,9 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: can't update allocation for 0x0"
         );
 
-        allocatedTokens[addr] = _value;
+        allocatedTokens[addr] = allocated;
         usedBudget[addr] += GAS_COST * GAS_PRICE;
-        emit AllocationUpdated(addr, _value);
-
-        uint256 remainingBudget = 0;
-        if (availableBudget[addr] >= usedBudget[addr]) {
-            remainingBudget = availableBudget[addr] - usedBudget[addr];
-        }
-        emit GasBudgetUpdated(addr, remainingBudget);
-    }
-
-    function updateAndClaimAllocation(address addr, uint256 _value)
-        external 
-        whenNotPaused 
-        onlyRole(OPERATOR_ROLE)
-    {
-        require(
-            addr != address(0), 
-            "Facility: can't update allocation for 0x0"
-        );
-
-        allocatedTokens[addr] = _value;
-        usedBudget[addr] += GAS_COST * GAS_PRICE;
-        emit AllocationUpdated(addr, _value);
+        emit AllocationUpdated(addr, allocated);
 
         uint256 remainingBudget = 0;
         if (availableBudget[addr] >= usedBudget[addr]) {
@@ -112,53 +81,33 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         }
         emit GasBudgetUpdated(addr, remainingBudget);
 
-        this._claimAllocation(addr);
-    }
-
-    function claimAllocation()
-        external 
-        whenNotPaused
-    {
-        this._claimAllocation(msg.sender);
-    }
-
-    function _claimAllocation(address addr)
-        external 
-        whenNotPaused
-    {
-        require(
-            addr != address(0),
-            "Facility: can't claim allocation for 0x0"
-        );
-        
-        uint256 allocated = allocatedTokens[addr];
         require(
             allocated > 0,
             "Facility: no tokens allocated for sender"
         );
 
-        uint256 _claimed = claimedTokens[addr];
+        uint256 claimed = claimedTokens[addr];
         require(
-            allocated > _claimed,
+            allocated > claimed,
             "Facility: no tokens available to claim"
         );
 
         IERC20 token = IERC20(tokenAddress);
         uint256 contractBalance = token.balanceOf(address(this));
         
-        uint256 _claimable = allocated - _claimed;
+        uint256 claimable = allocated - claimed;
         require(
-            contractBalance > _claimable,
+            contractBalance > claimable,
             "Facility: not enough tokens to claim"
         );
 
         require(
-            token.transfer(addr, _claimable), 
+            token.transfer(addr, claimable), 
             "Facility: transfer of claimable tokens failed"
         );
 
         claimedTokens[addr] = allocated;
-        emit AllocationClaimed(addr, _claimable);
+        emit AllocationClaimed(addr, claimable);
     }
 
     function setGasCost(uint256 _value) 
