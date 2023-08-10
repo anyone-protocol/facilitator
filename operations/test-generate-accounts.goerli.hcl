@@ -11,7 +11,7 @@ job "test-generate-accounts-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.6"
+            image = "ghcr.io/ator-development/facilitator:0.4.7"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/generate-accounts.ts"]
@@ -37,6 +37,7 @@ job "test-generate-accounts-goerli" {
             PHASE="stage"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
+            FACILITY_CONTRACT_KEY="facilitator-goerli/address"
             TEST_ACCOUNTS_KEY="facilitator-goerli/test-accounts"
         }
 

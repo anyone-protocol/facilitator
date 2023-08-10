@@ -22,7 +22,7 @@ async function main() {
       });
 
       facilityAddress = (await consul.kv.get({
-        key: process.env.CONSUL_KEY || 'dummy-path',
+        key: process.env.FACILITY_CONTRACT_KEY || 'dummy-path',
         token: consulToken
       })).Value
     }
