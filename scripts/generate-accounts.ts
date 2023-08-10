@@ -23,7 +23,7 @@ async function main() {
         const wallet = ethers.Wallet.createRandom()
         await operator.sendTransaction({
           to: wallet.address,
-          value: 1n * BigInt(10e18),
+          value: 1n * BigInt(10e16),
         })
         return wallet.privateKey
     }))
