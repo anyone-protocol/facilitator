@@ -70,7 +70,7 @@ async function main() {
       const decodedValue = Buffer.from(accountsData, 'base64').toString('utf-8');
       accounts = JSON.parse(decodedValue) as string[];
     } else {
-      accounts = ["0x46d0b30b82900bfc5b38069074ac8886830c15ed0e0e8134582f5537fb8e271a"]
+      accounts = ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"]
     }
 
     console.log(`Operator ${operator.address} is updating allocation in facility ${facilityAddress}`)
@@ -82,8 +82,9 @@ async function main() {
     let index = 0
     while (index < accountsCount) {
       let allocation = 10_000 + index * 1000 + (Math.random() * 100)
+
       const tx = await contract.connect(operator).updateAllocation(
-        new ethers.Wallet(accounts[index]).address, 
+        accounts[index], 
         ethers.parseUnits(allocation.toString()), false)
 
       const receipt = await tx.wait()
