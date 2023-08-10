@@ -10,13 +10,18 @@ async function main() {
           "inputs": [
             {
               "internalType": "address",
-              "name": "_account",
+              "name": "addr",
               "type": "address"
             },
             {
               "internalType": "uint256",
-              "name": "_value",
+              "name": "allocated",
               "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "doClaim",
+              "type": "bool"
             }
           ],
           "name": "updateAllocation",
@@ -79,11 +84,11 @@ async function main() {
       let allocation = 10_000 + index * 1000 + (Math.random() * 100)
       const tx = await contract.connect(operator).updateAllocation(
         new ethers.Wallet(accounts[index]), 
-        ethers.parseUnits(allocation.toString()), true)
+        ethers.parseUnits(allocation.toString()), false)
 
       const receipt = await tx.wait()
       
-      console.log(`Iteration: ${index}\nTx: ${receipt.transactionHash}\nGas used: ${receipt.gasUsed}\nGas price: ${tx.gasPrice}`)
+      console.log(`Iteration: ${index}\nTx: ${tx.hash}\nGas used: ${receipt.gasUsed}\nGas price: ${tx.gasPrice}`)
       
       index++
     }
