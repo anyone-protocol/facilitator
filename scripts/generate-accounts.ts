@@ -3,9 +3,8 @@ import { ethers, upgrades } from 'hardhat'
 import Consul from "consul"
 
 async function main() {
-    const accountsCount = (process.env.PHASE !== undefined)? 50 : 1;
-
     const isLocal = (process.env.PHASE === undefined)
+    const accountsCount = (isLocal)? 1 : 50;
     
     let facilityAddress = (isLocal)? 
       process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
@@ -28,10 +27,10 @@ async function main() {
     }
       
     const provider = 
-    new ethers.JsonRpcProvider(
-        (isLocal)? 'http://127.0.0.1:8545/' : 
-            process.env.JSON_RPC || 'http://127.0.0.1:8545/'
-    )
+      new ethers.JsonRpcProvider(
+          (isLocal)? 'http://127.0.0.1:8545/' : 
+              process.env.JSON_RPC || 'http://127.0.0.1:8545/'
+      )
 
     const operator = new ethers.Wallet(
       process.env.FACILITY_OPERATOR_KEY || 
@@ -39,27 +38,34 @@ async function main() {
       provider
     )
 
-    let accounts = await Promise.all(Array.from({ length: accountsCount }, async (_, index) => {
-        const wallet = ethers.Wallet.createRandom()
+    console.log(`Operator ${operator.address}`)
 
-        // Fund the account
-        const fundTx = await operator.sendTransaction({
-          to: wallet.address,
-          value: BigInt(1e16),
-        })
-        const fundReceipt = await fundTx.wait()
-        
-        const budgetTx = await wallet.sendTransaction({
-          to: facilityAddress,
-          value: 9n * BigInt(1e16)
-        })
+    let accounts = []
+    let index = 0
 
-        const budgetReceipt = await budgetTx.wait()
-
-        console.log(`Iteration: ${index}\nWallet: ${wallet.privateKey}\nFund tx: ${fundReceipt.transactionHash}\nFund gas: ${fundReceipt.gasUsed}\nBudget tx: ${budgetReceipt.transactionHash}\nBudget gas: ${budgetReceipt.gasUsed}`)
+    while (index < accountsCount) {
       
-        return wallet.privateKey
-    }))
+      const wallet = ethers.Wallet.createRandom(provider)
+
+      // Fund the account
+      const fundTx = await operator.sendTransaction({
+        to: wallet.address,
+        value: ethers.parseUnits('0.01'),
+      })
+      const fundReceipt = await fundTx.wait()
+
+      const budgetTx = await wallet.sendTransaction({
+        to: facilityAddress,
+        value: ethers.parseUnits('0.0099')
+      })
+
+      const budgetReceipt = await budgetTx.wait()
+
+      console.log(`Iteration: ${index}\nKey: ${wallet.privateKey}\nAddress: ${wallet.address}\nFund tx: ${fundTx.hash}\nFund gas: ${fundReceipt.gasUsed}\nBudget tx: ${budgetTx.transactionHash}\nBudget gas: ${budgetReceipt.gasUsed}`)
+    
+      accounts.push(wallet.privateKey)
+    
+    }
     
     if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
 
