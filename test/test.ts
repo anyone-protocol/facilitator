@@ -178,10 +178,9 @@ describe("Facility contract", function () {
       value: 1n * BigInt(10e18),
     });
 
-    await expect(
-      // @ts-ignore
-      facility.connect(operator).updateAndClaim(tester.address, 500)
-    ).to.be.revertedWith('Facility: not enough tokens to claim')
+    // @ts-ignore
+    await expect(facility.connect(operator).updateAndClaim(tester.address, 500))
+      .to.be.revertedWith('Facility: not enough tokens to claim')
   })
 
   it('Prevents claiming tokens when no tokens allocated for sender', async () => {

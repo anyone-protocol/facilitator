@@ -70,13 +70,11 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
 
         allocatedTokens[addr] = allocated;
         usedBudget[addr] += GAS_COST * GAS_PRICE;
-        emit AllocationUpdated(addr, allocated);
 
         uint256 remainingBudget = 0;
         if (availableBudget[addr] >= usedBudget[addr]) {
             remainingBudget = availableBudget[addr] - usedBudget[addr];
         }
-        emit GasBudgetUpdated(addr, remainingBudget);
 
         require(
             allocated > 0,
@@ -104,6 +102,8 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         );
 
         claimedTokens[addr] = allocated;
+        emit GasBudgetUpdated(addr, remainingBudget);
+        emit AllocationUpdated(addr, allocated);
         emit AllocationClaimed(addr, claimable);
     }
 
