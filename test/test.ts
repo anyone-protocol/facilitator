@@ -9,7 +9,7 @@ describe("Facility contract", function () {
     const Facility = await ethers.getContractFactory('Facility')
     const [ admin, tester, operator ] = await ethers.getSigners()
 
-    const token = await Token.deploy(100_000_000n * BigInt(10e18))
+    const token = await Token.deploy(100_000_000n * BigInt(1e18))
     const tokenAddress = await token.getAddress()
 
     const facility = await upgrades.deployProxy(
@@ -99,7 +99,7 @@ describe("Facility contract", function () {
     // @ts-ignore
     await token.connect(admin).transfer(
       facilityAddress,
-      2_000_000n * BigInt(10e18)
+      2_000_000n * BigInt(1e18)
     )
 
     await expect(
@@ -132,12 +132,12 @@ describe("Facility contract", function () {
     // @ts-ignore
     await token.connect(admin).transfer(
       facilityAddress,
-      2_000_000n * BigInt(10e18)
+      2_000_000n * BigInt(1e18)
     )
 
     await tester.sendTransaction({
       to: facility.getAddress(),
-      value: 1n * BigInt(10e18),
+      value: 1n * BigInt(1e18),
     });
 
     await expect(
@@ -175,7 +175,7 @@ describe("Facility contract", function () {
 
     await tester.sendTransaction({
       to: facility.getAddress(),
-      value: 1n * BigInt(10e18),
+      value: 1n * BigInt(1e18),
     });
 
     // @ts-ignore

@@ -6,12 +6,32 @@ async function main() {
     const accountsCount = (process.env.PHASE !== undefined)? 50 : 1;
 
     const isLocal = (process.env.PHASE === undefined)
+    
+    let facilityAddress = (isLocal)? 
+      process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
+      '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'
+      
+    let consul
+    const consulToken = process.env.CONSUL_TOKEN || undefined
 
+    if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
+      console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
+      consul = new Consul({
+        host: process.env.CONSUL_IP,
+        port: process.env.CONSUL_PORT,
+      });
+
+      facilityAddress = (await consul.kv.get({
+        key: process.env.CONSUL_KEY || 'dummy-path',
+        token: consulToken
+      })).Value
+    }
+      
     const provider = 
-        new ethers.JsonRpcProvider(
-            (isLocal)? 'http://127.0.0.1:8545/' : 
-                process.env.JSON_RPC || 'http://127.0.0.1:8545/'
-        )
+    new ethers.JsonRpcProvider(
+        (isLocal)? 'http://127.0.0.1:8545/' : 
+            process.env.JSON_RPC || 'http://127.0.0.1:8545/'
+    )
 
     const operator = new ethers.Wallet(
       process.env.FACILITY_OPERATOR_KEY || 
@@ -21,24 +41,27 @@ async function main() {
 
     let accounts = await Promise.all(Array.from({ length: accountsCount }, async (_, index) => {
         const wallet = ethers.Wallet.createRandom()
-        await operator.sendTransaction({
+
+        // Fund the account
+        const fundTx = await operator.sendTransaction({
           to: wallet.address,
-          value: 1n * BigInt(10e16),
+          value: BigInt(1e16),
         })
+        const fundReceipt = await fundTx.wait()
+        
+        const budgetTx = await wallet.sendTransaction({
+          to: facilityAddress,
+          value: 9n * BigInt(1e16)
+        })
+
+        const budgetReceipt = await budgetTx.wait()
+
+        console.log(`Iteration: ${index}\nWallet: ${wallet.privateKey}\nFund tx: ${fundReceipt.transactionHash}\nFund gas: ${fundReceipt.gasUsed}\nBudget tx: ${budgetReceipt.transactionHash}\nBudget gas: ${budgetReceipt.gasUsed}`)
+      
         return wallet.privateKey
     }))
-
-    console.log("Generated accounts:", accounts)
-
-    let consul
-    const consulToken = process.env.CONSUL_TOKEN || undefined
     
     if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
-      console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
-      consul = new Consul({
-        host: process.env.CONSUL_IP,
-        port: process.env.CONSUL_PORT,
-      });
 
       const updateResult = await consul.kv.set({
         key: process.env.TEST_ACCOUNTS_KEY || 'dummy-path',
