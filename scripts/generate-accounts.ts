@@ -19,14 +19,14 @@ async function main() {
       provider
     )
 
-    let accounts = Array.from({ length: accountsCount }, async (_, index) => {
+    let accounts = await Promise.all(Array.from({ length: accountsCount }, async (_, index) => {
         const wallet = ethers.Wallet.createRandom()
         await operator.sendTransaction({
           to: wallet.address,
           value: 1n * BigInt(10e18),
         })
         return wallet.privateKey
-    });
+    }))
 
     console.log("Generated accounts:", accounts)
 

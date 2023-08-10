@@ -1,4 +1,4 @@
-job "test-update-allocations-goerli" {
+job "test-generate-accounts-goerli" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,12 +6,12 @@ job "test-update-allocations-goerli" {
         attempts = 0
     }
 
-    task "test-update-allocations-goerli-task" {
+    task "test-generate-accounts-goerli-task" {
         driver = "docker"
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.3"
+            image = "ghcr.io/ator-development/facilitator:0.4.4"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/generate-accounts.ts"]
