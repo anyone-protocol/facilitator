@@ -34,10 +34,6 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
     receive() external payable whenNotPaused {
         availableBudget[msg.sender] += msg.value;
         operatorAddress.transfer(msg.value);
-        emit GasBudgetUpdated(
-            msg.sender,
-            availableBudget[msg.sender] - usedBudget[msg.sender]
-        );
         
         uint256 available = availableBudget[msg.sender];
         require(
@@ -55,6 +51,10 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             "Facility: not enough user provided budget, send ETH to contract address to refill"
         );
         
+        emit GasBudgetUpdated(
+            msg.sender,
+            availableBudget[msg.sender] - usedBudget[msg.sender]
+        );
         emit RequestingUpdate(msg.sender);
     }
 
