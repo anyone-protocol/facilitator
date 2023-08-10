@@ -11,7 +11,7 @@ job "test-update-allocations-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.11"
+            image = "ghcr.io/ator-development/facilitator:0.4.12"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/update-allocation.ts"]

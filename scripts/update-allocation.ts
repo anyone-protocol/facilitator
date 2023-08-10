@@ -83,7 +83,7 @@ async function main() {
     while (index < accountsCount) {
       let allocation = 10_000 + index * 1000 + (Math.random() * 100)
       const tx = await contract.connect(operator).updateAllocation(
-        new ethers.Wallet(accounts[index]), 
+        new ethers.Wallet(accounts[index]).address, 
         ethers.parseUnits(allocation.toString()), false)
 
       const receipt = await tx.wait()
