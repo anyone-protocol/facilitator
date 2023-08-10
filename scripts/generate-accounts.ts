@@ -64,7 +64,7 @@ async function main() {
       console.log(`Iteration: ${index}\nKey: ${wallet.privateKey}\nAddress: ${wallet.address}\nFund tx: ${fundTx.hash}\nFund gas: ${fundReceipt.gasUsed}\nBudget tx: ${budgetTx.transactionHash}\nBudget gas: ${budgetReceipt.gasUsed}`)
     
       accounts.push(wallet.privateKey)
-    
+      index++
     }
     
     if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
