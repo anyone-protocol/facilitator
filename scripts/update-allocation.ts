@@ -62,10 +62,10 @@ async function main() {
         token: consulToken
       })).Value
 
-      const accountsData = await consul.kv.get({
+      const accountsData = (await consul.kv.get({
         key: process.env.TEST_ACCOUNTS_KEY || 'dummy-path',
         token: consulToken
-      }).Value
+      })).Value
 
       const decodedValue = Buffer.from(accountsData, 'base64').toString('utf-8');
       accounts = JSON.parse(decodedValue) as string[];

@@ -11,7 +11,7 @@ job "test-generate-accounts-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.9"
+            image = "ghcr.io/ator-development/facilitator:0.4.11"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/generate-accounts.ts"]
