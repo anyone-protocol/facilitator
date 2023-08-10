@@ -104,7 +104,7 @@ describe("Facility contract", function () {
 
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAndClaim(tester.address, newValue)
+      facility.connect(operator).updateAllocation(tester.address, newValue, true)
     ).to.emit(facility, "AllocationUpdated")
       .withArgs(tester.address, newValue)
 
@@ -142,7 +142,7 @@ describe("Facility contract", function () {
 
     await expect(
       // @ts-ignore
-      await facility.connect(operator).updateAndClaim(tester.address, newValue)
+      await facility.connect(operator).updateAllocation(tester.address, newValue, true)
     ).to.emit(facility, "AllocationClaimed")
       .withArgs(tester.address, newValue)
   })
@@ -153,7 +153,7 @@ describe("Facility contract", function () {
     
     await expect(
       // @ts-ignore
-      facility.connect(tester).updateAndClaim(tester.address, newValue)
+      facility.connect(tester).updateAllocation(tester.address, newValue, false)
     ).to.be.revertedWith(`AccessControl: account ${tester.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`)
   })
 
@@ -179,7 +179,7 @@ describe("Facility contract", function () {
     });
 
     // @ts-ignore
-    await expect(facility.connect(operator).updateAndClaim(tester.address, 500))
+    await expect(facility.connect(operator).updateAllocation(tester.address, 500, true))
       .to.be.revertedWith('Facility: not enough tokens to claim')
   })
 
@@ -201,7 +201,7 @@ describe("Facility contract", function () {
 
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAndClaim(tester.address, 0)
+      facility.connect(operator).updateAllocation(tester.address, 0, true)
     ).to.be.revertedWith('Facility: no tokens allocated for sender')
   })
 
@@ -224,14 +224,14 @@ describe("Facility contract", function () {
 
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAndClaim(tester.address, newValue)
+      facility.connect(operator).updateAllocation(tester.address, newValue, true)
     ).to.emit(facility, "AllocationClaimed")
       .withArgs(tester.address, newValue)
 
 
     await expect(
       // @ts-ignore
-      facility.connect(operator).updateAndClaim(tester.address, newValue)
+      facility.connect(operator).updateAllocation(tester.address, newValue, true)
     ).to.be.revertedWith('Facility: no tokens available to claim')
   })
 

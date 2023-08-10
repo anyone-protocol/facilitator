@@ -58,7 +58,7 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
         emit RequestingUpdate(msg.sender);
     }
 
-    function updateAndClaim(address addr, uint256 allocated)
+    function updateAllocation(address addr, uint256 allocated, bool doClaim)
         external 
         whenNotPaused 
         onlyRole(OPERATOR_ROLE)
@@ -76,35 +76,38 @@ contract Facility is Initializable, PausableUpgradeable, AccessControlUpgradeabl
             remainingBudget = availableBudget[addr] - usedBudget[addr];
         }
 
-        require(
-            allocated > 0,
-            "Facility: no tokens allocated for sender"
-        );
+        if (doClaim) {
+            require(
+                allocated > 0,
+                "Facility: no tokens allocated for sender"
+            );
 
-        uint256 claimed = claimedTokens[addr];
-        require(
-            allocated > claimed,
-            "Facility: no tokens available to claim"
-        );
+            uint256 claimed = claimedTokens[addr];
+            require(
+                allocated > claimed,
+                "Facility: no tokens available to claim"
+            );
 
-        IERC20 token = IERC20(tokenAddress);
-        uint256 contractBalance = token.balanceOf(address(this));
-        
-        uint256 claimable = allocated - claimed;
-        require(
-            contractBalance > claimable,
-            "Facility: not enough tokens to claim"
-        );
+            IERC20 token = IERC20(tokenAddress);
+            uint256 contractBalance = token.balanceOf(address(this));
+            
+            uint256 claimable = allocated - claimed;
+            require(
+                contractBalance > claimable,
+                "Facility: not enough tokens to claim"
+            );
 
-        require(
-            token.transfer(addr, claimable), 
-            "Facility: transfer of claimable tokens failed"
-        );
+            require(
+                token.transfer(addr, claimable), 
+                "Facility: transfer of claimable tokens failed"
+            );
 
-        claimedTokens[addr] = allocated;
+            claimedTokens[addr] = allocated;
+
+            emit AllocationClaimed(addr, claimable);
+        }
         emit GasBudgetUpdated(addr, remainingBudget);
         emit AllocationUpdated(addr, allocated);
-        emit AllocationClaimed(addr, claimable);
     }
 
     function setGasCost(uint256 _value) 

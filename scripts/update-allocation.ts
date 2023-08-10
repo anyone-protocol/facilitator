@@ -1,8 +1,9 @@
 import 'dotenv/config'
 import { ethers, upgrades } from 'hardhat'
+import Consul from "consul"
 
 async function main() {
-    const isLocal = true
+    const isLocal = (process.env.PHASE === undefined)
 
     const facilitatorABI = [
         {
@@ -37,30 +38,55 @@ async function main() {
             process.env.FACILITY_OPERATOR_KEY || 'no-key', provider
       )
 
-    const facilityAddress = (isLocal)? 
-        process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
-        '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'
+    let consul
+    let accounts 
+    const consulToken = process.env.CONSUL_TOKEN || undefined
+    let facilityAddress = (isLocal)? 
+      process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
+      '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'
+  
+    if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
+      console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
+      consul = new Consul({
+        host: process.env.CONSUL_IP,
+        port: process.env.CONSUL_PORT,
+      });
+  
+      facilityAddress = (await consul.kv.get({
+        key: process.env.CONSUL_KEY || 'dummy-path',
+        token: consulToken
+      })).Value
+
+      const accountsData = await consul.kv.get({
+        key: process.env.TEST_ACCOUNTS_KEY || 'dummy-path',
+        token: consulToken
+      }).Value
+
+      const decodedValue = Buffer.from(accountsData, 'base64').toString('utf-8');
+      accounts = JSON.parse(decodedValue) as string[];
+    } else {
+      accounts = ["0x46d0b30b82900bfc5b38069074ac8886830c15ed0e0e8134582f5537fb8e271a"]
+    }
 
     console.log(`Operator ${operator.address} is updating allocation in facility ${facilityAddress}`)
 
     const contract = new ethers.Contract(facilityAddress, facilitatorABI, provider)
 
-    const tx = await contract.connect(operator).updateAllocation(operator.address, ethers.parseUnits("1000"))
-    const receipt = await tx.wait();
-    console.log("Transaction hash:", receipt.transactionHash);
+    const accountsCount = (process.env.PHASE !== undefined)? accounts.length : 1; 
 
-    const gasUsed: bigint = receipt.gasUsed;
-    const gasPrice: bigint = tx.gasPrice;
-    console.log("Gas used:", gasUsed.toString());
-    console.log("Gas price:", gasPrice.toString());
-    
-    if (gasUsed != undefined && gasPrice != undefined) {
-        const gasCost: bigint = gasUsed * gasPrice;
-        console.log("Total gas cost:", gasCost.toString(), "Wei");
-        console.log("Total gas cost:", ethers.formatEther(gasCost), "Ether");
+    let index = 0
+    while (index < accountsCount) {
+      let allocation = 10_000 + index * 1000 + (Math.random() * 100)
+      const tx = await contract.connect(operator).updateAllocation(
+        new ethers.Wallet(accounts[index]), 
+        ethers.parseUnits(allocation.toString()), true)
+
+      const receipt = await tx.wait()
+      
+      console.log(`Iteration: ${index}\nTx: ${receipt.transactionHash}\nGas used: ${receipt.gasUsed}\nGas price: ${tx.gasPrice}`)
+      
+      index++
     }
-
-    
 }
 
 // We recommend this pattern to be able to use async/await everywhere

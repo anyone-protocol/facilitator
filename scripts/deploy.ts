@@ -32,9 +32,9 @@ async function main() {
       )
     : owner
   
-  const gasolatorAddress = process.env.GASOLATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
+  const operatorAddress = process.env.OPERATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
 
-  console.log(`Deploying facility with gasolator ${gasolatorAddress}...`)
+  console.log(`Deploying facility with operator ${operatorAddress}...`)
   
   console.log(`Deploying facility with deployer ${deployer.address}...`)
   
@@ -42,7 +42,7 @@ async function main() {
   
   const instance = await upgrades.deployProxy(
     Contract,
-    [ atorContractAddress, gasolatorAddress ]
+    [ atorContractAddress, operatorAddress ]
   )
   await instance.waitForDeployment()
   const proxyContractAddress = await instance.getAddress()

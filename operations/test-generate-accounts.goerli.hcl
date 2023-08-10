@@ -1,4 +1,4 @@
-job "facility-deploy-goerli" {
+job "test-update-allocations-goerli" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,7 +6,7 @@ job "facility-deploy-goerli" {
         attempts = 0
     }
 
-    task "deploy-facility-task" {
+    task "test-update-allocations-goerli-task" {
         driver = "docker"
 
         config {
@@ -14,7 +14,7 @@ job "facility-deploy-goerli" {
             image = "ghcr.io/ator-development/facilitator:0.4.3"
             entrypoint = ["npx"]
             command = "hardhat"
-            args = ["run", "--network", "goerli", "scripts/deploy.ts"]
+            args = ["run", "--network", "goerli", "scripts/generate-accounts.ts"]
         }
 
         vault {
@@ -24,10 +24,9 @@ job "facility-deploy-goerli" {
         template {
             data = <<EOH
             {{with secret "kv/facilitator-goerli"}}
-                DEPLOYER_PRIVATE_KEY="{{.Data.data.OWNER_KEY}}"
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
-                OPERATOR_ADDRESS="{{.Data.data.OPERATOR_ADDRESS}}"
+                FACILITY_OPERATOR_KEY="{{.Data.data.OPERATOR_KEY}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
@@ -38,8 +37,7 @@ job "facility-deploy-goerli" {
             PHASE="stage"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            CONSUL_KEY="facilitator-goerli/address"
-            ATOR_TOKEN_KEY="ator-goerli/address"
+            TEST_ACCOUNTS_KEY="facilitator-goerli/test-accounts"
         }
 
         restart {
