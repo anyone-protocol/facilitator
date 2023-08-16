@@ -1,4 +1,4 @@
-job "test-generate-accounts-goerli" {
+job "test-generate-accounts-stage-goerli" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -18,12 +18,12 @@ job "test-generate-accounts-goerli" {
         }
 
         vault {
-            policies = ["facilitator-goerli"]
+            policies = ["facilitator-stage-goerli"]
         }
 
         template {
             data = <<EOH
-            {{with secret "kv/facilitator-goerli"}}
+            {{with secret "kv/facilitator/goerli/stage"}}
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
                 FACILITY_OPERATOR_KEY="{{.Data.data.OPERATOR_KEY}}"
@@ -37,8 +37,8 @@ job "test-generate-accounts-goerli" {
             PHASE="stage"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            FACILITY_CONTRACT_KEY="facilitator-goerli/address"
-            TEST_ACCOUNTS_KEY="facilitator-goerli/test-accounts"
+            FACILITY_CONTRACT_KEY="facilitator/goerli/stage/address"
+            TEST_ACCOUNTS_KEY="facilitator/goerli/stage/test-accounts"
         }
 
         restart {
