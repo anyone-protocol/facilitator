@@ -54,14 +54,7 @@ async function main() {
       })
       const fundReceipt = await fundTx.wait()
 
-      const budgetTx = await wallet.sendTransaction({
-        to: facilityAddress,
-        value: ethers.parseUnits('0.0099')
-      })
-
-      const budgetReceipt = await budgetTx.wait()
-
-      console.log(`Iteration: ${index}\nKey: ${wallet.privateKey}\nAddress: ${wallet.address}\nFund tx: ${fundTx.hash}\nFund gas: ${fundReceipt.gasUsed}\nBudget tx: ${budgetTx.transactionHash}\nBudget gas: ${budgetReceipt.gasUsed}`)
+      console.log(`Iteration: ${index}\nKey: ${wallet.privateKey}\nAddress: ${wallet.address}\nFund tx: ${fundTx.hash}\nFund gas: ${fundReceipt.gasUsed}\n`)
     
       accounts.push(wallet.address)
       index++
