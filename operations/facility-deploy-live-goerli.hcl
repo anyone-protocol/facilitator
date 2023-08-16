@@ -38,8 +38,8 @@ job "facility-deploy-live-goerli" {
             PHASE="live"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            CONSUL_KEY="facilitator/goerli/stage/address"
-            ATOR_TOKEN_KEY="ator-token/goerli/stage/address"
+            CONSUL_KEY="facilitator/goerli/live/address"
+            ATOR_TOKEN_KEY="ator-token/goerli/live/address"
         }
 
         restart {
