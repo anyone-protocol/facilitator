@@ -4,7 +4,7 @@ import Consul from "consul"
 
 async function main() {
     const isLocal = (process.env.PHASE === undefined)
-    const accountsCount = (isLocal)? 1 : 50;
+    const accountsCount = (isLocal)? 1 : 20;
     
     let facilityAddress = (isLocal)? 
       process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
