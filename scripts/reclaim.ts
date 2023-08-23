@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { ethers } from 'hardhat';
 
+import BigNumber from 'bignumber.js'
+
 import { abi } from '../artifacts/contracts/Facility.sol/Facility.json'
 
 interface RewardAllocationData {
@@ -9,9 +11,7 @@ interface RewardAllocationData {
 }
 
 const reclaimData: RewardAllocationData[] = [
-  {address: "0x115afe7C1c388e541Bc2a3C7eF917Cc9d977EDdE", amount: "2884047985282285052441"},
-  {address: "0xdc19bd7e2552EE5f60afe59D377282e10F702644", amount: "3421603402875919162763"},
-  {address: "0xFb8fd61D5A4418e8E150Afd97CCD7Cc708C063a2", amount: "3349527222051208827047"}
+  {address: "0xEa4D2fC12d2EE706070E89C89F19Dcdd84Be39Fd", amount: "3.268551484090229528753e+21"}
 ]
 
 async function main() {
@@ -30,8 +30,8 @@ async function main() {
   const signerFacility = facility.connect(operator)
   
   for(let data of reclaimData) {
-    const amount: bigint = ethers.parseUnits(data.amount, 0)
-    // const amount: bigint = BigInt(data.amount)
+    const amount = BigNumber(data.amount).toFixed()
+    
     const result = await signerFacility.updateAllocation(data.address, amount, true)
     console.log(`updateAllocation tx ${result.hash} waiting for confirmation...`)
     await result.wait()
