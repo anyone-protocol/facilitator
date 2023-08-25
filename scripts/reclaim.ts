@@ -11,7 +11,7 @@ interface RewardAllocationData {
 }
 
 const reclaimData: RewardAllocationData[] = [
-  {address: "0xEa4D2fC12d2EE706070E89C89F19Dcdd84Be39Fd", amount: "3.268551484090229528753e+21"}
+  {address: "", amount: ""},
 ]
 
 async function main() {
@@ -30,7 +30,7 @@ async function main() {
   const signerFacility = facility.connect(operator)
   
   for(let data of reclaimData) {
-    const amount = BigNumber(data.amount).toFixed()
+    const amount = BigNumber(data.amount).toFixed(0)
     
     const result = await signerFacility.updateAllocation(data.address, amount, true)
     console.log(`updateAllocation tx ${result.hash} waiting for confirmation...`)
