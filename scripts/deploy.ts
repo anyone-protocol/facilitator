@@ -15,7 +15,7 @@ async function main() {
     });
 
     atorContractAddress = (await consul.kv.get({
-      key: process.env.ATOR_TOKEN_KEY || 'dummy-path',
+      key: process.env.ATOR_TOKEN_CONSUL_KEY || 'dummy-path',
       token: consulToken
     })).Value
   }
@@ -32,7 +32,7 @@ async function main() {
       )
     : owner
   
-  const operatorAddress = process.env.OPERATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
+  const operatorAddress = process.env.FACILITY_OPERATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
 
   console.log(`Deploying facility with operator ${operatorAddress}...`)
   
@@ -52,9 +52,8 @@ async function main() {
   // await result.deployed()
   // console.log(`Contract deployed to ${result.address}`)
 
-
   if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
-    const consulKey = process.env.CONSUL_KEY || 'facilitator-goerli/test-deploy'
+    const consulKey = process.env.FACILITY_CONSUL_KEY || 'facilitator-goerli/test-deploy'
 
     const updateResult = await consul.kv.set({
       key: consulKey,
@@ -68,8 +67,6 @@ async function main() {
 
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;

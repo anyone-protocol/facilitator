@@ -1,4 +1,4 @@
-job "facility-deploy-stage-goerli" {
+job "facility-deploy-dev-goerli" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,7 +6,7 @@ job "facility-deploy-stage-goerli" {
         attempts = 0
     }
 
-    task "deploy-facility-stage-task" {
+    task "deploy-facility-dev-task" {
         driver = "docker"
 
         config {
@@ -18,12 +18,12 @@ job "facility-deploy-stage-goerli" {
         }
 
         vault {
-            policies = ["facilitator-stage-goerli"]
+            policies = ["facilitator-dev-goerli"]
         }
 
         template {
             data = <<EOH
-            {{with secret "kv/facilitator/goerli/stage"}}
+            {{with secret "kv/facilitator/goerli/dev"}}
                 DEPLOYER_PRIVATE_KEY="{{.Data.data.DEPLOYER_PRIVATE_KEY}}"
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
@@ -35,11 +35,11 @@ job "facility-deploy-stage-goerli" {
         }
 
         env {
-            PHASE="stage"
+            PHASE="dev"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            FACILITY_CONSUL_KEY="facilitator/goerli/stage/address"
-            ATOR_TOKEN_CONSUL_KEY="ator-token/goerli/stage/address"
+            FACILITY_CONSUL_KEY="facilitator/goerli/dev/address"
+            ATOR_TOKEN_CONSUL_KEY="ator-token/goerli/dev/address"
         }
 
         restart {

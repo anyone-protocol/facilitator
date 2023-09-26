@@ -26,7 +26,7 @@ job "test-generate-accounts-stage-goerli" {
             {{with secret "kv/facilitator/goerli/stage"}}
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
-                FACILITY_OPERATOR_KEY="{{.Data.data.OPERATOR_KEY}}"
+                FACILITY_OPERATOR_KEY="{{.Data.data.FACILITY_OPERATOR_KEY}}"
             {{end}}
             EOH
             destination = "secrets/file.env"

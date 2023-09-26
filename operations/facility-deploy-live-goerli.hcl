@@ -27,7 +27,7 @@ job "facility-deploy-live-goerli" {
                 DEPLOYER_PRIVATE_KEY="{{.Data.data.DEPLOYER_PRIVATE_KEY}}"
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
-                OPERATOR_ADDRESS="{{.Data.data.OPERATOR_ADDRESS}}"
+                FACILITY_OPERATOR_ADDRESS="{{.Data.data.FACILITY_OPERATOR_ADDRESS}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
@@ -38,8 +38,8 @@ job "facility-deploy-live-goerli" {
             PHASE="live"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            CONSUL_KEY="facilitator/goerli/live/address"
-            ATOR_TOKEN_KEY="ator-token/goerli/live/address"
+            FACILITY_CONSUL_KEY="facilitator/goerli/live/address"
+            ATOR_TOKEN_CONSUL_KEY="ator-token/goerli/live/address"
         }
 
         restart {
