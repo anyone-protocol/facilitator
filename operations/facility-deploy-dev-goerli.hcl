@@ -11,7 +11,7 @@ job "facility-deploy-dev-goerli" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.16"
+            image = "ghcr.io/ator-development/facilitator:0.4.17"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "goerli", "scripts/deploy.ts"]
