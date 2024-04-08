@@ -15,9 +15,9 @@ const reclaimData: RewardAllocationData[] = [
 ]
 
 async function main() {
-  let facilityContractAddress = process.env.FACILITY_CONTRACT_ADDRESS || 'Missing FACILITY_CONTRACT_ADDRESS'
+  let facilityContractAddress = process.env.FACILITATOR_ADDRESS || 'Missing FACILITATOR_ADDRESS'
 
-  let operatorKey = process.env.FACILITY_OPERATOR_KEY || "Missing FACILITY_OPERATOR_KEY"
+  let operatorKey = process.env.FACILITATOR_OPERATOR_KEY || "Missing FACILITATOR_OPERATOR_KEY"
   
   const provider = new ethers.JsonRpcProvider(process.env.JSON_RPC || 'http://127.0.0.1:8545/')
   const operator = new ethers.Wallet(operatorKey, provider)

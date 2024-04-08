@@ -7,7 +7,7 @@ async function main() {
     const accountsCount = (isLocal)? 1 : 20;
     
     let facilityAddress = (isLocal)? 
-      process.env.FACILITY_CONTRACT_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
+      process.env.FACILITATOR_ADDRESS || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' :
       '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'
       
     let consul
@@ -21,7 +21,7 @@ async function main() {
       });
 
       facilityAddress = (await consul.kv.get({
-        key: process.env.FACILITY_CONTRACT_KEY || 'dummy-path',
+        key: process.env.FACILITATOR_CONSUL_KEY || 'dummy-path',
         token: consulToken
       })).Value
     }
@@ -33,7 +33,7 @@ async function main() {
       )
 
     const operator = new ethers.Wallet(
-      process.env.FACILITY_OPERATOR_KEY || 
+      process.env.FACILITATOR_OPERATOR_KEY || 
         '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d', // HH #1 
       provider
     )

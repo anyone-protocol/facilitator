@@ -1,4 +1,4 @@
-job "test-generate-accounts-stage-goerli" {
+job "test-generate-accounts-stage-sepolia" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,27 +6,27 @@ job "test-generate-accounts-stage-goerli" {
         attempts = 0
     }
 
-    task "test-generate-accounts-goerli-task" {
+    task "test-generate-accounts-sepolia-task" {
         driver = "docker"
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.17"
+            image = "ghcr.io/ator-development/facilitator:0.4.18"
             entrypoint = ["npx"]
             command = "hardhat"
-            args = ["run", "--network", "goerli", "scripts/generate-accounts.ts"]
+            args = ["run", "--network", "sepolia", "scripts/generate-accounts.ts"]
         }
 
         vault {
-            policies = ["facilitator-stage-goerli"]
+            policies = ["facilitator-stage-sepolia"]
         }
 
         template {
             data = <<EOH
-            {{with secret "kv/facilitator/goerli/stage"}}
+            {{with secret "kv/facilitator/sepolia/stage"}}
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
-                FACILITY_OPERATOR_KEY="{{.Data.data.FACILITY_OPERATOR_KEY}}"
+                FACILITATOR_OPERATOR_KEY="{{.Data.data.FACILITATOR_OPERATOR_KEY}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
@@ -37,8 +37,8 @@ job "test-generate-accounts-stage-goerli" {
             PHASE="stage"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            FACILITY_CONTRACT_KEY="facilitator/goerli/stage/address"
-            TEST_ACCOUNTS_KEY="facilitator/goerli/stage/test-accounts"
+            FACILITATOR_CONSUL_KEY="facilitator/sepolia/stage/address"
+            TEST_ACCOUNTS_KEY="facilitator/sepolia/stage/test-accounts"
         }
 
         restart {

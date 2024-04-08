@@ -22,7 +22,7 @@ async function main() {
 
   console.log(`Deploying facility with ator contract: ${atorContractAddress}`)
 
-  const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY
+  const deployerPrivateKey = process.env.FACILITATOR_DEPLOYER_KEY
   const [ owner ] = await ethers.getSigners()
 
   const deployer = deployerPrivateKey
@@ -32,7 +32,7 @@ async function main() {
       )
     : owner
   
-  const operatorAddress = process.env.FACILITY_OPERATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
+  const operatorAddress = process.env.FACILITATOR_OPERATOR_ADDRESS || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // Hardhat #2 
 
   console.log(`Deploying facility with operator ${operatorAddress}...`)
   
@@ -53,7 +53,7 @@ async function main() {
   // console.log(`Contract deployed to ${result.address}`)
 
   if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
-    const consulKey = process.env.FACILITY_CONSUL_KEY || 'facilitator-goerli/test-deploy'
+    const consulKey = process.env.FACILITATOR_CONSUL_KEY || 'facilitator-goerli/test-deploy'
 
     const updateResult = await consul.kv.set({
       key: consulKey,

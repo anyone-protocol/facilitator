@@ -1,4 +1,4 @@
-job "facility-deploy-dev-goerli" {
+job "facility-deploy-stage-sepolia" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,28 +6,28 @@ job "facility-deploy-dev-goerli" {
         attempts = 0
     }
 
-    task "deploy-facility-dev-task" {
+    task "deploy-facility-stage-task" {
         driver = "docker"
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.17"
+            image = "ghcr.io/ator-development/facilitator:0.4.18"
             entrypoint = ["npx"]
             command = "hardhat"
-            args = ["run", "--network", "goerli", "scripts/deploy.ts"]
+            args = ["run", "--network", "sepolia", "scripts/deploy.ts"]
         }
 
         vault {
-            policies = ["facilitator-dev-goerli"]
+            policies = ["facilitator-stage-sepolia"]
         }
 
         template {
             data = <<EOH
-            {{with secret "kv/facilitator/goerli/dev"}}
-                DEPLOYER_PRIVATE_KEY="{{.Data.data.DEPLOYER_PRIVATE_KEY}}"
+            {{with secret "kv/facilitator/sepolia/stage"}}
+                FACILITATOR_DEPLOYER_KEY="{{.Data.data.FACILITATOR_DEPLOYER_KEY}}"
                 CONSUL_TOKEN="{{.Data.data.CONSUL_TOKEN}}"
                 JSON_RPC="{{.Data.data.JSON_RPC}}"
-                FACILITY_OPERATOR_ADDRESS="{{.Data.data.FACILITY_OPERATOR_ADDRESS}}"
+                FACILITATOR_OPERATOR_ADDRESS="{{.Data.data.FACILITATOR_OPERATOR_ADDRESS}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
@@ -35,11 +35,11 @@ job "facility-deploy-dev-goerli" {
         }
 
         env {
-            PHASE="dev"
+            PHASE="stage"
             CONSUL_IP="127.0.0.1"
             CONSUL_PORT="8500"
-            FACILITY_CONSUL_KEY="facilitator/goerli/dev/address"
-            ATOR_TOKEN_CONSUL_KEY="ator-token/goerli/dev/address"
+            FACILITATOR_CONSUL_KEY="facilitator/sepolia/stage/address"
+            ATOR_TOKEN_CONSUL_KEY="ator-token/sepolia/stage/address"
         }
 
         restart {
