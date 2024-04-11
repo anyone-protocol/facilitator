@@ -11,7 +11,7 @@ job "test-generate-accounts-dev-sepolia" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.19"
+            image = "ghcr.io/ator-development/facilitator:0.4.20"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "sepolia", "scripts/generate-accounts.ts"]

@@ -50,7 +50,7 @@ async function main() {
       // Fund the account
       const fundTx = await operator.sendTransaction({
         to: wallet.address,
-        value: ethers.parseUnits('0.01'),
+        value: ethers.parseUnits('0.001'),
       })
       const fundReceipt = await fundTx.wait()
 
