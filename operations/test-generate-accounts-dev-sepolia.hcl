@@ -11,14 +11,14 @@ job "test-generate-accounts-dev-sepolia" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.18"
+            image = "ghcr.io/ator-development/facilitator:0.4.19"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "sepolia", "scripts/generate-accounts.ts"]
         }
 
         vault {
-            policies = ["facilitator-dev-sepolia"]
+            policies = ["facilitator-sepolia-dev"]
         }
 
         template {

@@ -23,6 +23,10 @@ const config = {
       accounts: [],
       timeout: 1800000
     },
+    sepolia: {
+      url: "https://ethereum-sepolia.publicnode.com",
+      accounts: [],
+    },
     localhost: {
       timeout: 18000000
     }

@@ -11,14 +11,14 @@ job "facility-deploy-live-sepolia" {
 
         config {
             network_mode = "host"
-            image = "ghcr.io/ator-development/facilitator:0.4.18"
+            image = "ghcr.io/ator-development/facilitator:0.4.19"
             entrypoint = ["npx"]
             command = "hardhat"
             args = ["run", "--network", "sepolia", "scripts/deploy.ts"]
         }
 
         vault {
-            policies = ["facilitator-live-sepolia"]
+            policies = ["facilitator-sepolia-live"]
         }
 
         template {
