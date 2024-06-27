@@ -5,7 +5,7 @@ import Consul from "consul"
 async function main() {
   let consul
   const consulToken = process.env.CONSUL_TOKEN || undefined
-  let atorContractAddress = process.env.ATOR_TOKEN_CONTRACT_ADDRESS
+  let anyoneAddress = process.env.ATOR_TOKEN_CONTRACT_ADDRESS
 
   if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
     console.log(`Connecting to Consul at ${process.env.CONSUL_IP}:${process.env.CONSUL_PORT}...`)
@@ -14,15 +14,15 @@ async function main() {
       port: process.env.CONSUL_PORT,
     });
 
-    atorContractAddress = (await consul.kv.get({
+    anyoneAddress = (await consul.kv.get({
       key: process.env.ATOR_TOKEN_CONSUL_KEY || 'dummy-path',
       token: consulToken
     })).Value
   }
 
-  console.log(`Deploying facility with ator contract: ${atorContractAddress}`)
+  console.log(`Deploying facility with anyone: ${anyoneAddress}`)
 
-  const deployerPrivateKey = process.env.FACILITATOR_DEPLOYER_KEY
+  const deployerPrivateKey = process.env.FACILITATOR_DEPLOYER_KEY || '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' // HH #1
   const [ owner ] = await ethers.getSigners()
 
   const deployer = deployerPrivateKey
@@ -42,15 +42,11 @@ async function main() {
   
   const instance = await upgrades.deployProxy(
     Contract,
-    [ atorContractAddress, operatorAddress ]
+    [ anyoneAddress, operatorAddress ]
   )
   await instance.waitForDeployment()
   const proxyContractAddress = await instance.getAddress()
   console.log(`Proxy deployed to ${proxyContractAddress}`)
-
-  // const result = await Contract.deploy()
-  // await result.deployed()
-  // console.log(`Contract deployed to ${result.address}`)
 
   if (process.env.PHASE !== undefined && process.env.CONSUL_IP !== undefined) {
     const consulKey = process.env.FACILITATOR_CONSUL_KEY || 'facilitator-goerli/test-deploy'
