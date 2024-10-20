@@ -11,7 +11,7 @@ interface RewardAllocationData {
 }
 
 const reclaimData: RewardAllocationData[] = [
-  {address: "", amount: ""}
+  {address: "0x6D454e61876334ee2Ca473E3b4B66777C931886E", amount: "25871132581137039505"}
 ]
 
 async function main() {
@@ -32,10 +32,14 @@ async function main() {
   for(let data of reclaimData) {
     try {
       const amount = BigNumber(data.amount).toFixed(0)
-      const result = await signerFacility.updateAllocation(data.address, amount, true)
+      const preAllocated = await signerFacility.allocatedTokens(data.address)
+      console.log(`Tokens currently allocated in facility ${data.address}: ${preAllocated}`)
+      const result = await signerFacility.updateAllocation(data.address, amount, true, { gasMultiplier: 5 })
       console.log(`updateAllocation for ${data.address} tx ${result.hash} waiting for confirmation...`)
       await result.wait()
       console.log(`updateAllocation tx ${result.hash} confirmed!`)
+      const postAllocated = await signerFacility.allocatedTokens(data.address)
+      console.log(`Tokens currently allocated in facility ${data.address}: ${postAllocated}`)
     } catch(error) {
       console.error('Failed updating allocation', error)
     }

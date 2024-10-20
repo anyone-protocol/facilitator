@@ -26,6 +26,10 @@ const config = {
     sepolia: {
       url: "https://ethereum-sepolia.publicnode.com",
       accounts: [],
+      gas: "auto", 
+      gasPrice: "auto", 
+      gasMultiplier: 10,
+      gasLimit: 1_000_000_000_000_000_000
     },
     localhost: {
       timeout: 18000000
